@@ -1,0 +1,120 @@
+{
+    "services": {
+        "LaunchPage": {
+            "adapter": {
+                "config": {
+                    "catalogs": [
+                        {
+                            "id": "Sales_catalog",
+                            "title": "Sales Application Catalog",
+                            "tiles": [
+                                {
+                                    "id": "SalesAnalytics",
+                                    "title": "Sales Analytics",
+                                    "size": "1×1",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "chipId": "salesTile_001",
+                                        "title": "Sales Analytics",
+                                        "subtitle": "Global Overview",
+                                        "info": "Global Analytics",
+                                        "icon": "sap-icon://geographic-bubble-chart",
+                                        "targetURL": "#Action-SalesAnalytics"
+                                    }
+                                },
+                                {
+                                    "id": "SalesPredictions",
+                                    "title": "Sales Predictions",
+                                    "size": "1×1",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "chipId": "salesTile_001",
+                                        "title": "Sales Predictions",
+                                        "subtitle": "Future Trends",
+                                        "info": "Detailed Predictions",
+                                        "icon": "sap-icon://business-objects-experience",
+                                        "targetURL": "#Action-SalesAnalytics&/predict"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "groups": [
+                        {
+                            "id": "Home_group",
+                            "title": "Home",
+                            "isPreset": true,
+                            "isVisible": true,
+                            "isGroupLocked": false,
+                            "tiles": []
+                        },
+                        {
+                            "id": "Sales_group",
+                            "title": "Sales Applications",
+                            "isPreset": true,
+                            "isVisible": true,
+                            "isGroupLocked": false,
+                            "tiles": [
+                                {
+                                    "id": "SalesAnalytics",
+                                    "title": "Sales Analytics",
+                                    "size": "1×1",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "chipId": "salesTile_001",
+                                        "title": "Sales Analytics",
+                                        "subtitle": "Global Overview",
+                                        "info": "Global Analytics",
+                                        "icon": "sap-icon://geographic-bubble-chart",
+                                        "targetURL": "#Action-SalesAnalytics"
+                                    }
+                                },
+                                {
+                                    "id": "SalesPredictions",
+                                    "title": "Sales Predictions",
+                                    "size": "1×1",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "chipId": "salesTile_002",
+                                        "title": "Sales Predictions",
+                                        "subtitle": "Future Trends",
+                                        "info": "Detailed Predictions",
+                                        "icon": "sap-icon://business-objects-experience",
+                                        "targetURL": "#Action-SalesAnalytics&/predict"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "NavTargetResolution": {
+            "config": {
+                "enableClientSideTargetResolution": true
+            }
+        },
+        "ClientSideTargetResolution": {
+            "adapter": {
+                "config": {
+                    "inbounds": {
+                        "actionSalesAnalytics": {
+                            "semanticObject": "Action",
+                            "action": "SalesAnalytics",
+                            "title": "Sales Analytics",
+                            "signature": {
+                                "parameters": { },
+                                "additionalParameters": "allowed"
+                            },
+                            "resolutionResult": {
+                                "applicationType": "SAPUI5",
+                                "additionalInformation": "SAPUI5.Component=SalesAnalytics",
+                                "url": "webapp/"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

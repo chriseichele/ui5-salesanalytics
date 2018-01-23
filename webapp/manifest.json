@@ -1,0 +1,139 @@
+{
+    "_version": "1.1.0",
+    "sap.app": {
+        "_version": "1.2.0",
+        "id": "de.tum.in.i17.leonardo.ws1718.salesanalytics",
+        "type": "application",
+        "i18n": "i18n/i18n.properties",
+        "title": "{{appTitle}}",
+        "description": "{{appDescription}}",
+        "applicationVersion": {
+            "version": "1.0.0"
+        },
+        "ach": "ach",
+        "resources": "resources.json",
+        "dataSources": {
+            "sales": {
+                "uri": "/gbi-student-006/SalesDataAnalytics/model/sales.xsodata",
+                "type": "OData",
+                "settings": {
+                    "odataVersion": "2.0"
+                }
+            }
+        },
+        "sourceTemplate": {
+            "id": "sap.ui.ui5-template-plugin.2masterdetail",
+            "version": "1.32.5"
+        }
+    },
+    "sap.fiori": {
+        "_version": "1.1.0",
+        "registrationIds": [],
+        "archeType": "transactional"
+    },
+    "sap.ui": {
+        "_version": "1.2.0",
+        "technology": "UI5",
+        "icons": {
+            "icon": "sap-icon://business-objects-experience",
+            "favIcon": "resources/img/favicon.ico",
+            "phone": "resources/img/favicon-16x16.png",
+            "phone@2": "resources/img/favicon-32x32.png",
+            "tablet": "resources/img/favicon-16x16.png",
+            "tablet@2": "resources/img/favicon-32x32.png"
+        },
+        "deviceTypes": {
+            "desktop": true,
+            "tablet": true,
+            "phone": true
+        }
+    },
+    "sap.ui5": {
+        "_version": "1.1.0",
+        "rootView": {
+            "viewName": "de.tum.in.i17.leonardo.ws1718.salesanalytics.view.App",
+            "type": "XML",
+            "id": "app"
+        },
+        "dependencies": {
+            "minUI5Version": "1.32.0",
+            "libs": {
+                "sap.ui.core": {},
+                "sap.m": {}
+            }
+        },
+        "contentDensities": {
+            "compact": true,
+            "cozy": true
+        },
+        "models": {
+            "i18n": {
+                "type": "sap.ui.model.resource.ResourceModel",
+                "uri": "i18n/i18n.properties"
+            },
+            "sales": {
+                "dataSource": "sales",
+                "type": "sap.ui.model.odata.v2.ODataModel",
+                "settings": {
+                    "loadMetadataAsync": false,
+                    "json": true,
+                    "bJSON": true,
+                    "defaultBindingMode": "TwoWay",
+                    "useBatch": true,
+                    "refreshAfterChange": false,
+                    "disableHeadRequestForToken": true
+                }
+            }
+        },
+        "routing": {
+            "config": {
+                "routerClass": "sap.m.routing.Router",
+                "viewType": "XML",
+                "viewPath": "de.tum.in.i17.leonardo.ws1718.salesanalytics.view",
+                "controlId": "idAppControl",
+                "clearTarget": false,
+                "controlAggregation": "pages",
+                "bypassed": {
+                    "target": [
+						"notFound"
+					]
+                }
+            },
+            "targets": {
+                "map": {
+                    "viewName": "Map",
+                    "viewId": "map",
+                    "viewLevel": 1,
+                    "transition": "slide"
+                },
+                "predict": {
+                    "viewName": "Predict",
+                    "viewId": "predict",
+                    "viewLevel": 2,
+                    "transition": "slide"
+                },
+		        "notFound": {
+		            "viewName": "NotFound",
+		            "transition": "show"
+		        }
+            },
+            "routes": [
+                {
+                    "pattern": "map",
+                    "name": "map",
+                    "target": "map"
+				},
+                {
+                    "pattern": "predict/:chartType:",
+                    "name": "predict",
+                    "target": "predict"
+				},
+                {
+                    "pattern": "",
+                    "name": "default",
+                    "target": "map"
+				}
+			]
+        }
+    }
+}

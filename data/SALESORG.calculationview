@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="SALESORG" applyPrivilegeType="ANALYTIC_PRIVILEGE" dataCategory="DEFAULT" schemaVersion="2.3" defaultClient="$$client$$" visibility="internal" calculationScenarioType="SCRIPT_BASED" scriptParametersCaseSensitive="true" enforceSqlExecution="false">
+<descriptions defaultDescription="SALESORG"/>
+<localVariables/>
+<variableMappings/>
+<dataSources/>
+<calculationViews>
+  <calculationView xsi:type="Calculation:SqlScriptView" id="Script_View">
+    <viewAttributes>
+      <viewAttribute id="SALESORG" datatype="VARCHAR" length="4"/>
+      <viewAttribute id="SHAPE" datatype="TEXT"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <definition>/********* Begin Procedure Script ************/ 
+BEGIN 
+   var_out = select SALESORGANISATION as SALESORG, SHAPE.ST_ASGeoJson() AS SHAPE from &quot;GBI_DEMO&quot;.&quot;GBI_DEMO_SALESORG_GPS&quot;; 
+
+END /********* End Procedure Script ************/</definition>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Script_View">
+  <attributes>
+    <attribute id="SALESORG" key="true" order="1">
+      <keyMapping columnObjectName="Script_View" columnName="SALESORG"/>
+    </attribute>
+    <attribute id="SHAPE" order="2">
+      <keyMapping columnObjectName="Script_View" columnName="SHAPE"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/></logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

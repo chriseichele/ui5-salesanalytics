@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAP Fiori Launchpad</title>
+    
+    <script>
+        var getUrlParameter = function getUrlParameter(sParam) {
+            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : sParameterName[1];
+                }
+            }
+        };
+        // add url parameters for fiori config
+        if (history.pushState && !getUrlParameter('sap-ushell-sandbox-config')) {
+            let path = window.location.pathname;
+            let dir = path.substring(0, path.lastIndexOf('/')) + "/";
+            let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname 
+                     + '?sap-language=en&sap-ushell-sandbox-config=' + dir + 'appconfig/fioriSandboxConfig.json' + window.location.hash;
+            window.history.pushState({'path':newurl},'',newurl);
+        }
+    </script>
+    
+    <script>
+        window["sap-ushell-config"] = {
+            defaultRenderer: "fiori2",
+            renderers: {
+                fiori2: {
+                    componentData: {
+                        config: {
+                            search: "hidden"
+                        }
+                    }
+                }
+            },
+            applications: {}
+        };
+    </script>
+
+    <script src="https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ushell/bootstrap/sandbox.js" id="sap-ushell-bootstrap"></script>
+
+    <!-- Bootstrap the UI5 core library -->
+    <script id='sap-ui-bootstrap'
+      src='https://sapui5.netweaver.ondemand.com/resources/sap-ui-core.js'
+      data-sap-ui-libs='sap.m, sap.ushell, sap.collaboration'
+      data-sap-ui-theme='sap_belize'
+      data-sap-ui-compatVersion='edge' 
+      data-sap-ui-preload='async' 
+      data-sap-ui-xx-bindingSyntax='complex'
+      data-sap-ui-resourceroots='{"de/tum/in/i17/leonardo/ws1718/salesanalytics": "webapp/"}' 
+      data-sap-ui-frameOptions='allow'>
+    </script>
+
+    <script>
+        sap.ui.getCore().attachInit(function() {
+            // initialize the ushell sandbox component
+            sap.ushell.Container.createRenderer().placeAt("content");
+        });
+    </script>
+
+</head>
+
+<!-- UI Content -->
+
+<body class="sapUiBody" role="application">
+    <div id="content"></div>
+</body>
+
+</html>

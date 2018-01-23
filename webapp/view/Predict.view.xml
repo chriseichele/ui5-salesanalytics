@@ -1,0 +1,168 @@
+<mvc:View controllerName="de.tum.in.i17.leonardo.ws1718.salesanalytics.controller.Predict"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:u="sap.ui.unified"
+	xmlns:l="sap.ui.layout"
+	xmlns:core="sap.ui.core"
+	xmlns="sap.m"
+	xmlns:commons="sap.suite.ui.commons"
+	xmlns:viz="sap.viz.ui5.controls"
+	xmlns:footerbar="sap.ushell.ui.footerbar"
+	xmlns:custom="de.tum.in.i17.leonardo.ws1718.salesanalytics.controls">
+	
+	
+	<SplitContainer id="SplitView" initialDetail="detail" initialMaster="master">
+		<masterPages>
+        	<Page id="master" title="{i18n>settings}">
+        		<headerContent>
+        			<Button icon="sap-icon://navigation-right-arrow" press="onNavToDetail" visible="{= !!${device>/system/phone} }" />
+        		</headerContent>
+        	    <content>
+    			
+                    <custom:Panel expandable="true" expanded="{= !${device>/system/phone} }" headerText="{i18n>measures}" class="sapUiNoContentPadding">
+                        <custom:content>
+                            <List id="MeasureList" mode="MultiSelect" includeItemInSelection="true">
+                                <StandardListItem id="Revenue" title="Revenue" description="Revenue of Sales" selected="true"/>
+                                <StandardListItem id="Quantity" title="Quantity" description="Sales Quantity" selected="true"/>
+                            </List>
+                        </custom:content>
+                    </custom:Panel>
+                    <custom:Panel expandable="true" expanded="{= !${device>/system/phone} }" headerText="{i18n>products}" class="sapUiNoContentPadding">
+                        <custom:content class="sapUiNoMargin sapUiNoPadding">
+            				<VBox>
+                            	<l:VerticalLayout
+                            	    class="sapUiContentPadding"
+                            		width="100%">
+                            		<l:content>
+                            			<Label text="Product Name" labelFor="inputName" class="sapUiTinyMarginTop" />
+                            			<Input id="inputName" />
+                            			<Label text="Sales Orgainsation" labelFor="selectSalesOrg" class="sapUiTinyMarginTop" />
+                            			<Select id="selectSalesOrg" width="100%" name="salesorg" >
+                                            <items>
+                                                <core:Item text="Sales Org 1" key="1"/>
+                                            </items>
+                                            <items>
+                                                <core:Item text="Sales Org 2" key="1"/>
+                                            </items>
+                                        </Select>
+                            			<Label text="Product Category" labelFor="selectProductCategory" class="sapUiTinyMarginTop" />
+                            			<Select id="selectProductCategory" width="100%" name="category" >
+                                            <items>
+                                                <core:Item text="Category A" key="A"/>
+                                            </items>
+                                            <items>
+                                                <core:Item text="Category B" key="B"/>
+                                            </items>
+                                        </Select>
+                            			<Label text="Product Group" labelFor="selectProductGroup" class="sapUiTinyMarginTop" />
+                            			<Select id="selectProductGroup" width="100%" name="group" >
+                                            <items>
+                                                <core:Item text="Group A" key="A"/>
+                                            </items>
+                                            <items>
+                                                <core:Item text="Group B" key="B"/>
+                                            </items>
+                                        </Select>
+                            			<Label text="Price" labelFor="inputPrice" class="sapUiTinyMarginTop" />
+                                        <StepInput id="inputPrice"
+                                                value="{value}"
+                                                displayValuePrecision="{displayValuePrecision}"
+                                                min="{min}"
+                                                max="{max}"
+                                                width="100%"
+                                                step="{step}"
+                                                largerStep="{largerStep}"
+                                                valueState="{valueState}"
+                                                enabled="{enabled}"
+                                                editable="{editable}"
+                                                change="onChange"/>
+                            		</l:content>
+                            	</l:VerticalLayout>
+            				</VBox>
+		                    <HBox class="sapUiSmallMarginBeginEnd">
+            				    <Button icon="sap-icon://save" text="{i18n>save}" >
+                					<layoutData>
+                						<FlexItemData growFactor="1" />
+                					</layoutData>
+            					</Button>
+            				    <Button type="Reject" icon="sap-icon://delete" text="{i18n>delete}" >
+                					<layoutData>
+                						<FlexItemData growFactor="1" />
+                					</layoutData>
+            					</Button>
+            				    <Button type="Accept" icon="sap-icon://add" text="{i18n>new}" >
+            					</Button>
+            				</HBox>
+                            <List id="ProductList" mode="SingleSelect" includeItemInSelection="true" >
+								<GroupHeaderListItem title="{i18n>productListCurrent}" upperCase="false" />
+                                <StandardListItem icon="sap-icon://product" id="p1" title="Product A" description="Product description" />
+                                <StandardListItem icon="sap-icon://product" id="p2" title="Product B" description="Product description" />
+                                <StandardListItem icon="sap-icon://product" id="p3" title="Product C" description="Product description" />
+                            </List>
+                        </custom:content>
+                    </custom:Panel>
+                    
+        	    </content>
+        	    <!--
+        		<footer>
+        			<OverflowToolbar>
+        			</OverflowToolbar>
+        		</footer>
+        		-->
+		    </Page>
+		</masterPages>
+		<detailPages>
+        	<Page id="detail" title="{/pageTitle}" showNavButton="{= !!${device>/system/phone} }" >
+        		<headerContent>
+    				<Button id="shareButton" tooltip="{i18n>shareTooltip}" icon="sap-icon://action" press="onSharePress">
+    					<dependents>
+    						<ActionSheet id="shareSheet" showCancelButton="true" placement="Bottom">
+    							<buttons>
+    								<Button id="shareEmail" icon="sap-icon://email" text="{i18n>shareSendEmail}" press="onShareEmailPress"/>
+    								<Button id="shareInJam" icon="sap-icon://jam" text="{i18n>shareOnJamTitle}" press="onShareInJamPress" visible="{FLP>/isShareInJamActive}"/>
+    								<footerbar:AddBookmarkButton id="shareTile" appData="{ path: '/pageTitle', formatter: '.formatter.shareTileData' }"/>
+    							</buttons>
+    						</ActionSheet>
+    					</dependents>
+    				</Button>
+        		</headerContent>
+        		
+            	<IconTabBar
+            		id="IconTabBarChartTypes"
+            		select="onSwitchChartType"
+	                stretchContentHeight="true"
+            		expanded="true"
+            		expandable="false"
+            		class="sapUiResponsiveContentPadding">
+            		<items>
+            			<IconTabFilter icon="sap-icon://horizontal-bar-chart-2" text="Bar Chart" key="bar" />
+            			<IconTabFilter icon="sap-icon://vertical-bar-chart" text="Column Chart" key="column" />
+            			<IconTabFilter icon="sap-icon://horizontal-stacked-chart" text="Stacked Bars" key="stacked_bar" />
+            			<IconTabFilter icon="sap-icon://vertical-stacked-chart" text="Stacked Columns" key="stacked_column" />
+            			<IconTabFilter icon="sap-icon://line-chart" text="Line Chart" key="line" />
+            			<IconTabFilter icon="sap-icon://bubble-chart" text="Bubble Chart" key="bubble" />
+            			<IconTabFilter icon="sap-icon://donut-chart" text="Donut" key="donut" />
+            			<IconTabFilter icon="sap-icon://pie-chart" text="Pie Chart" key="pie" />
+            			<IconTabFilter icon="sap-icon://heatmap-chart" text="Heatmap" key="heatmap" />
+            			<IconTabFilter icon="sap-icon://horizontal-waterfall-chart" text="Waterfall" key="horizontal_waterfall" />
+            			<IconTabFilter icon="sap-icon://vertical-waterfall-chart" text="Waterfall" key="waterfall" />
+            			<IconTabFilter icon="sap-icon://horizontal-bullet-chart" text="Bullet" key="bullet" />
+            			<IconTabFilter icon="sap-icon://vertical-bullet-chart" text="Bullet" key="vertical_bullet" />
+            		</items>
+            		<content>
+                            <commons:ChartContainer id="ChartContainer" showFullScreen="true" autoAdjustHeight="true" showLegend="true" 
+                                class="ChartContainerHeader" showPersonalization="false" contentChange="attachContentChange">
+                                <commons:content>
+                                    <commons:ChartContainerContent icon="sap-icon://horizontal-bar-chart">
+                                        <commons:content>
+                                            <viz:VizFrame id="VizFrame" uiConfig="{applicationSet:'fiori'}"></viz:VizFrame>
+                                        </commons:content>
+                                    </commons:ChartContainerContent>
+                                </commons:content>
+                            </commons:ChartContainer>
+            		</content>
+            	</IconTabBar>
+                	
+        	</Page>
+		</detailPages>
+	</SplitContainer>
+</mvc:View>

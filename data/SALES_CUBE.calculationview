@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="SALES_CUBE" applyPrivilegeType="ANALYTIC_PRIVILEGE" dataCategory="CUBE" schemaVersion="2.3" defaultClient="$$client$$" visibility="reportingEnabled" calculationScenarioType="TREE_BASED" enforceSqlExecution="false">
+<descriptions defaultDescription="SALES_CUBE"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="SALES_POSITIONS" type="CALCULATION_VIEW">
+    <viewAttributes allViewAttributes="true"/>
+    <resourceUri>/gbi-student-006.SalesDataAnalytics.data/calculationviews/SALES_POSITIONS</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="SalesPositions">
+    <viewAttributes>
+      <viewAttribute id="CURRENCY"/>
+      <viewAttribute id="CUSTOMER_NUMBER"/>
+      <viewAttribute id="DAY"/>
+      <viewAttribute id="DISCOUNT"/>
+      <viewAttribute id="MONTH"/>
+      <viewAttribute id="ORDER_ITEM"/>
+      <viewAttribute id="ORDER_NUMBER"/>
+      <viewAttribute id="PRODUCT"/>
+      <viewAttribute id="QUARTER"/>
+      <viewAttribute id="REVENUE"/>
+      <viewAttribute id="SALES_QUANTITY"/>
+      <viewAttribute id="UNIT_OF_MEASURE"/>
+      <viewAttribute id="YEAR"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="#SALES_POSITIONS">
+      <mapping xsi:type="Calculation:AttributeMapping" target="CURRENCY" source="CURRENCY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CUSTOMER_NUMBER" source="CUSTOMER_NUMBER"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="DAY" source="DAY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="DISCOUNT" source="DISCOUNT"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="MONTH" source="MONTH"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="ORDER_ITEM" source="ORDER_ITEM"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="ORDER_NUMBER" source="ORDER_NUMBER"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCT" source="PRODUCT"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="QUARTER" source="QUARTER"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="REVENUE" source="REVENUE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="SALES_QUANTITY" source="SALES_QUANTITY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="UNIT_OF_MEASURE" source="UNIT_OF_MEASURE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="YEAR" source="YEAR"/>
+    </input>
+  </calculationView>
+</calculationViews>
+<logicalModel id="SalesPositions">
+  <attributes>
+    <attribute id="ORDER_NUMBER" key="true" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="ORDER_NUMBER"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="ORDER_NUMBER"/>
+    </attribute>
+    <attribute id="ORDER_ITEM" key="true" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="ORDER_ITEM"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="ORDER_ITEM"/>
+    </attribute>
+    <attribute id="YEAR" order="3" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="YEAR"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="YEAR"/>
+    </attribute>
+    <attribute id="QUARTER" order="4" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="QUARTER"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="QUARTER"/>
+    </attribute>
+    <attribute id="MONTH" order="5" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="MONTH"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="MONTH"/>
+    </attribute>
+    <attribute id="DAY" order="6" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="DAY"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="DAY"/>
+    </attribute>
+    <attribute id="CURRENCY" order="7" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CURRENCY"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="CURRENCY"/>
+    </attribute>
+    <attribute id="UNIT_OF_MEASURE" order="11" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="UNIT_OF_MEASURE"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="UNIT_OF_MEASURE"/>
+    </attribute>
+    <attribute id="PRODUCT$local">
+      <keyMapping columnObjectName="SalesPositions" columnName="PRODUCT"/>
+    </attribute>
+    <attribute id="CUSTOMER_NUMBER$local">
+      <keyMapping columnObjectName="SalesPositions" columnName="CUSTOMER_NUMBER"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures>
+    <measure id="DISCOUNT" order="8" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="DISCOUNT"/>
+      <measureMapping columnObjectName="SalesPositions" columnName="DISCOUNT"/>
+    </measure>
+    <measure id="REVENUE" order="9" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="REVENUE"/>
+      <measureMapping columnObjectName="SalesPositions" columnName="REVENUE"/>
+    </measure>
+    <measure id="SALES_QUANTITY" order="10" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="SALES_QUANTITY"/>
+      <measureMapping columnObjectName="SalesPositions" columnName="SALES_QUANTITY"/>
+    </measure>
+  </baseMeasures>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+  <localDimensions/>
+  <sharedDimensions>
+    <logicalJoin associatedObjectUri="/gbi-student-006.SalesDataAnalytics.data/calculationviews/PRODUCTS">
+      <attributes>
+        <attributeRef>#PRODUCT$local</attributeRef>
+      </attributes>
+      <associatedAttributeNames>
+        <attributeName>PRODUCT_ID</attributeName>
+      </associatedAttributeNames>
+      <properties joinType="referential" joinOperator="Equal"/>
+      <associatedAttributeFeatures/>
+    </logicalJoin>
+    <logicalJoin associatedObjectUri="/gbi-student-006.SalesDataAnalytics.data/calculationviews/CUSTOMER">
+      <attributes>
+        <attributeRef>#CUSTOMER_NUMBER$local</attributeRef>
+      </attributes>
+      <associatedAttributeNames>
+        <attributeName>CUSTOMER_NUMBER</attributeName>
+      </associatedAttributeNames>
+      <properties joinType="referential" joinOperator="Equal"/>
+      <associatedAttributeFeatures/>
+    </logicalJoin>
+  </sharedDimensions>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="SalesPositions" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="91" y="319"/>
+      <rectangleSize height="30" width="140"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

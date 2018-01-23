@@ -1,0 +1,22 @@
+<core:FragmentDefinition
+	xmlns="sap.m"
+	xmlns:core="sap.ui.core">
+	<ResponsivePopover
+		title="{mapData>tooltip}"
+		class="sapUiContentPadding"
+		placement="Bottom" >
+		<endButton>
+			<Button text="{i18n>gotoPredict}" tooltip="{i18n>gotoPredictTooltip}" icon="sap-icon://business-objects-experience" press="gotoPredict" />
+		</endButton>
+		<content>
+			<VBox class="sapUiTinyMargin">
+		        <Label text="{i18n>Position}" />
+			    <Text text="{mapData>pos}" />
+			</VBox>
+			<VBox class="sapUiTinyMargin">
+		        <Label text="{i18n>Radius}" />
+			    <Text text="{mapData>radius}" />
+			</VBox>
+		</content>
+	</ResponsivePopover>
+</core:FragmentDefinition>

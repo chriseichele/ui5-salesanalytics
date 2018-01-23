@@ -1,0 +1,169 @@
+<mvc:View controllerName="de.tum.in.i17.leonardo.ws1718.salesanalytics.controller.Map"
+	xmlns="sap.m"
+	xmlns:commons="sap.suite.ui.commons"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:core="sap.ui.core"
+	xmlns:u="sap.ui.unified"
+	xmlns:l="sap.ui.layout"
+	xmlns:viz="sap.viz.ui5.controls"
+	xmlns:vk="sap.ui.vk"
+	xmlns:vbm="sap.ui.vbm"
+	xmlns:f="sap.f"
+	xmlns:fb="sap.ui.comp.filterbar"
+	xmlns:vm="sap.ui.comp.variants"
+	xmlns:footerbar="sap.ushell.ui.footerbar"
+	xmlns:custom="de.tum.in.i17.leonardo.ws1718.salesanalytics.controls">
+	
+		<f:DynamicPage id="dynamicMapPage" headerExpanded="{= !${device>/system/phone} }" >
+			<f:title>
+				<f:DynamicPageTitle>
+					<f:heading>
+						<vm:VariantManagement standardItemText="{/pageTitle}">
+						</vm:VariantManagement>
+					</f:heading>
+					<f:actions>
+						<ToolbarSpacer/>
+				        <Button id="shareButton" type="Transparent" tooltip="{i18n>shareTooltip}" icon="sap-icon://action" press="onSharePress">
+				        	<dependents>
+				        		<ActionSheet id="shareSheet" showCancelButton="true" placement="Bottom">
+				        			<buttons>
+				        				<Button id="shareEmail" icon="sap-icon://email" text="{i18n>shareSendEmail}" press="onShareEmailPress"/>
+				        				<Button id="shareInJam" icon="sap-icon://jam" text="{i18n>shareOnJamTitle}" press="onShareInJamPress" visible="{FLP>/isShareInJamActive}"/>
+				        				<footerbar:AddBookmarkButton id="shareTile" appData="{ path: '/pageTitle', formatter: '.formatter.shareTileData' }"/>
+				        			</buttons>
+				        		</ActionSheet>
+				        	</dependents>
+				        </Button>
+					</f:actions>
+				</f:DynamicPageTitle>
+			</f:title>
+			<f:header>
+				<f:DynamicPageHeader pinnable="false">
+					<f:content>
+						<fb:FilterBar id="FilterBar" reset="onReset" search="onSearch" useToolbar="false" showGoOnFB="false">
+							<fb:filterItems>
+								<fb:FilterItem name="A" label="{i18n>SalesOrg}">
+									<fb:control>
+                                		<MultiComboBox
+                                            id="slSalesOrganisation"
+                                			selectionChange="onSelectChange"
+                                			items="{
+                                                path: 'mapSalesAreasData>/features',
+                                				sorter: { path: 'properties/state' }
+                                			}">
+                                			<core:Item key="{mapSalesAreasData>id}" text="{mapSalesAreasData>properties/state}" />
+                                		</MultiComboBox>
+									</fb:control>
+								</fb:FilterItem>								
+								<fb:FilterItem name="B" label="{i18n>ProductCategory}">
+									<fb:control>
+										<Select
+    										id="slProductCategory"
+    										change="onSelectChange"
+    										forceSelection="true"
+    										items="{
+                                                        path: 'sales>/Products'
+                                                     }">
+										    <core:Item key="{salesProductKey}" text="{salesProductName}"/>
+										</Select>
+									</fb:control>				
+								</fb:FilterItem>				
+								<fb:FilterItem name="C" label="{i18n>ProductGroup}">
+									<fb:control>
+										<Select
+    										id="slProductGroup"
+    										change="onSelectChange"
+    										forceSelection="true"
+    										items="{
+                                                        path: '/ProductGroups'
+                                                    }">
+										    <core:Item key="{key}" text="{name}"/>
+										</Select>
+									</fb:control>				
+								</fb:FilterItem>
+							</fb:filterItems>
+						</fb:FilterBar>
+					</f:content>
+				</f:DynamicPageHeader>
+			</f:header>
+			<f:content>
+			
+			<l:FixFlex class="fixFlexVertical">
+				<l:fixContent>
+			        <u:CalendarMonthInterval id="slTimeframe" width="100%" select="onMonthChange" />
+				</l:fixContent>
+				<l:flexContent>
+					<vk:MapContainer showSelection="false" showSettings="false" autoAdjustHeight="true">
+					
+				        <vk:listPanelStack>
+				        	<vk:ListPanelStack width="200px">
+				        		<vk:content>
+			        				<vk:ListPanel headerText="{i18n>legend}" selectionMode="SingleSelectMaster"
+			        					headerIcon="sap-icon://legend" expanded="{= !${device>/system/phone} }">
+			        					<vk:items>
+									        <GroupHeaderListItem title="{i18n>legendSalesPast}" upperCase="false" />
+			        						<vk:LegendItem title="> 0%" color="rgba(92,186,230,0.2)" />
+			        						<vk:LegendItem title="> 25%" color="rgba(92,186,230,0.4)" />
+			        						<vk:LegendItem title="> 50%" color="rgba(92,186,230,0.6)" />
+			        						<vk:LegendItem title="> 75%" color="rgba(92,186,230,0.8)" />
+									        <GroupHeaderListItem title="{i18n>legendSalesFuture}" upperCase="false" />
+			        						<vk:LegendItem title="> 0%" color="rgba(230, 195, 92, 0.2)" />
+			        						<vk:LegendItem title="> 25%" color="rgba(230, 195, 92, 0.4)" />
+			        						<vk:LegendItem title="> 50%" color="rgba(230, 195, 92, 0.6)" />
+			        						<vk:LegendItem title="> 75%" color="rgba(230, 195, 92, 0.8)" />
+			        					</vk:items>
+			        				</vk:ListPanel>
+			        			</vk:content>
+			        		</vk:ListPanelStack>
+			        	</vk:listPanelStack>
+				
+						<vk:content>
+							
+							<vk:ContainerContent title="{i18n>mapGeo}" icon="sap-icon://globe">
+								<vk:content>
+							        <vbm:GeoMap id="map2" initialPosition="-40;20;0" initialZoom="2" openWindow="onOpenDetail" closeWindow="onCloseDetail">
+				                        
+			                        	<vbm:vos>
+					                        <vbm:Areas items="{mapSalesAreasData>/features}" >
+					                        	<vbm:Area id="Area" click="onClickCircle" 
+					                        		tooltip="{mapSalesAreasData>properties/state}" color="{mapSalesAreasData>colors/content}" colorBorder="{mapSalesAreasData>colors/border}"
+					                        		position="{mapSalesAreasData>geometry/shape}" key="{mapSalesAreasData>id}" hotDeltaColor="{mapSalesAreasData>colors/hover}" />
+				                        	</vbm:Areas>
+			                        	</vbm:vos>
+				                        
+				                        <!--
+				                        <vbm:geoJsonLayers>
+			                        	    <vbm:GeoJsonLayer data="{mapSalesAreasData>/}" items="{mapSalesAreasData>features}" >
+			                        	        <vbm:Feature featureId="{mapSalesAreasData>id}" color="rgba(92,186,30,0.6)" click="alert('click on feature');"/>
+			                                </vbm:GeoJsonLayer>
+			                            </vbm:geoJsonLayers>
+			                            -->
+			                        	
+							        </vbm:GeoMap>
+								</vk:content>
+							</vk:ContainerContent>
+							
+							<!--
+							<vk:ContainerContent title="{i18n>mapAnalytic}" icon="sap-icon://choropleth-chart">
+								<vk:content>
+			                        <vbm:AnalyticMap id="map1" width="100%" xmlns:l="sap.ui.layout"
+			                        	height="100%" initialPosition="-50;30;0" initialZoom="2" regionClick="onClickCircle" >
+			                        	
+			                        </vbm:AnalyticMap>
+								</vk:content>
+							</vk:ContainerContent>
+							-->
+							
+						</vk:content>
+					</vk:MapContainer>
+				</l:flexContent>
+			</l:FixFlex>
+				
+			</f:content>
+			<f:footer>
+			    <OverflowToolbar id="footerToolbar">
+				    <ToolbarSpacer/>
+			    </OverflowToolbar>
+			</f:footer>
+		</f:DynamicPage>
+</mvc:View>

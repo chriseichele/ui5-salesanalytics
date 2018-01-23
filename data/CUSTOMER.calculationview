@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="CUSTOMER" applyPrivilegeType="ANALYTIC_PRIVILEGE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="2.3" defaultClient="$$client$$" visibility="internal" outputViewType="Projection" calculationScenarioType="TREE_BASED" enforceSqlExecution="false">
+<descriptions defaultDescription="CUSTOMER"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="GBI_DEMO_CUSTOMER" type="DATA_BASE_TABLE">
+    <viewAttributes allViewAttributes="true"/>
+    <columnObject schemaName="GBI_DEMO" columnObjectName="GBI_DEMO_CUSTOMER"/>
+  </DataSource>
+  <DataSource id="SALESORG" type="CALCULATION_VIEW">
+    <viewAttributes allViewAttributes="true"/>
+    <resourceUri>/gbi-student-006.SalesDataAnalytics.data/calculationviews/SALESORG</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="Customer">
+    <viewAttributes>
+      <viewAttribute id="CUSTOMER_NUMBER"/>
+      <viewAttribute id="CUSTOMER_NAME"/>
+      <viewAttribute id="COUNTRY"/>
+      <viewAttribute id="CITY"/>
+      <viewAttribute id="SALES_ORGANISATION"/>
+      <viewAttribute id="VALID_FROM"/>
+      <viewAttribute id="VALID_TO"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="#GBI_DEMO_CUSTOMER">
+      <mapping xsi:type="Calculation:AttributeMapping" target="CUSTOMER_NUMBER" source="CUSTOMER_NUMBER"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CUSTOMER_NAME" source="CUSTOMER_NAME"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="COUNTRY" source="COUNTRY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CITY" source="CITY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="SALES_ORGANISATION" source="SALES_ORGANISATION"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="VALID_FROM" source="VALID_FROM"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="VALID_TO" source="VALID_TO"/>
+    </input>
+  </calculationView>
+  <calculationView xsi:type="Calculation:ProjectionView" id="SalesOrg">
+    <viewAttributes>
+      <viewAttribute id="SALESORG"/>
+      <viewAttribute id="SHAPE"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="#SALESORG">
+      <mapping xsi:type="Calculation:AttributeMapping" target="SALESORG" source="SALESORG"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="SHAPE" source="SHAPE"/>
+    </input>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="Join_1" joinType="inner" cardinality="C1_N">
+    <viewAttributes>
+      <viewAttribute id="CUSTOMER_NUMBER"/>
+      <viewAttribute id="CUSTOMER_NAME"/>
+      <viewAttribute id="COUNTRY"/>
+      <viewAttribute id="CITY"/>
+      <viewAttribute id="SALES_ORGANISATION"/>
+      <viewAttribute id="VALID_FROM"/>
+      <viewAttribute id="VALID_TO"/>
+      <viewAttribute id="SHAPE"/>
+      <viewAttribute id="JOIN$SALESORG$SALES_ORGANISATION" hidden="true"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="#SalesOrg">
+      <mapping xsi:type="Calculation:AttributeMapping" target="SHAPE" source="SHAPE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$SALESORG$SALES_ORGANISATION" source="SALESORG"/>
+    </input>
+    <input node="#Customer">
+      <mapping xsi:type="Calculation:AttributeMapping" target="CUSTOMER_NUMBER" source="CUSTOMER_NUMBER"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CUSTOMER_NAME" source="CUSTOMER_NAME"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="COUNTRY" source="COUNTRY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CITY" source="CITY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="SALES_ORGANISATION" source="SALES_ORGANISATION"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="VALID_FROM" source="VALID_FROM"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="VALID_TO" source="VALID_TO"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$SALESORG$SALES_ORGANISATION" source="SALES_ORGANISATION"/>
+    </input>
+    <joinAttribute name="JOIN$SALESORG$SALES_ORGANISATION"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Join_1">
+  <attributes>
+    <attribute id="CUSTOMER_NUMBER" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CUSTOMER_NUMBER"/>
+      <keyMapping columnObjectName="Join_1" columnName="CUSTOMER_NUMBER"/>
+    </attribute>
+    <attribute id="CUSTOMER_NAME" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CUSTOMER_NAME"/>
+      <keyMapping columnObjectName="Join_1" columnName="CUSTOMER_NAME"/>
+    </attribute>
+    <attribute id="COUNTRY" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="COUNTRY"/>
+      <keyMapping columnObjectName="Join_1" columnName="COUNTRY"/>
+    </attribute>
+    <attribute id="CITY" order="4" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CITY"/>
+      <keyMapping columnObjectName="Join_1" columnName="CITY"/>
+    </attribute>
+    <attribute id="SALES_ORGANISATION" order="5" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="SALES_ORGANISATION"/>
+      <keyMapping columnObjectName="Join_1" columnName="SALES_ORGANISATION"/>
+    </attribute>
+    <attribute id="VALID_FROM" order="6" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="VALID_FROM"/>
+      <keyMapping columnObjectName="Join_1" columnName="VALID_FROM"/>
+    </attribute>
+    <attribute id="VALID_TO" order="7" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="VALID_TO"/>
+      <keyMapping columnObjectName="Join_1" columnName="VALID_TO"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Customer" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="86" y="259"/>
+      <rectangleSize height="30" width="140"/>
+    </shape>
+    <shape expanded="true" modelObjectName="SalesOrg" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="140" y="386"/>
+      <rectangleSize height="30" width="140"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Join_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="185" y="194"/>
+      <rectangleSize height="30" width="140"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

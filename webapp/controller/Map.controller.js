@@ -32,8 +32,7 @@ sap.ui.define([
 			this.oSelectProductGroup = this.getSelect("slProductGroup");
 			this.aKeys = ["SalesArea", "ProductCategory", "ProductGroup"];
 			//this.aKeys = 
-			debugger;
-		    let test = this.getView().byId("FilterBar").getAllFilterItems();
+		    //let test = this.getView().byId("FilterBar").getAllFilterItems();
 		    
 			this.oModel.setProperty("/Filter", { "text" : this.getFormattedSummaryText([]) });
 			this.addSnappedLabel();

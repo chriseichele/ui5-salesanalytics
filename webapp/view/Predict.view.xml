@@ -6,6 +6,7 @@
 	xmlns="sap.m"
 	xmlns:commons="sap.suite.ui.commons"
 	xmlns:viz="sap.viz.ui5.controls"
+	xmlns:smartchart="sap.ui.comp.smartchart"
 	xmlns:footerbar="sap.ushell.ui.footerbar"
 	xmlns:custom="de.tum.in.i17.leonardo.ws1718.salesanalytics.controls">
 	
@@ -147,6 +148,7 @@
             			<IconTabFilter icon="sap-icon://vertical-waterfall-chart" text="Waterfall" key="waterfall" />
             			<IconTabFilter icon="sap-icon://horizontal-bullet-chart" text="Bullet" key="bullet" />
             			<IconTabFilter icon="sap-icon://vertical-bullet-chart" text="Bullet" key="vertical_bullet" />
+            			<IconTabFilter icon="sap-icon://scatter-chart" text="Scatter" key="timeseries_scatter" />
             		</items>
             		<content>
                             <commons:ChartContainer id="ChartContainer" showFullScreen="true" autoAdjustHeight="true" showLegend="true" 

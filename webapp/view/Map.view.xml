@@ -18,8 +18,10 @@
 			<f:title>
 				<f:DynamicPageTitle>
 					<f:heading>
-						<vm:VariantManagement standardItemText="{/pageTitle}">
-						</vm:VariantManagement>
+					    <Title text="{/pageTitle}" />
+					    <!--
+						<vm:VariantManagement standardItemText="{/pageTitle}" />
+						-->
 					</f:heading>
 					<f:actions>
 						<ToolbarSpacer/>
@@ -57,28 +59,28 @@
 								</fb:FilterItem>								
 								<fb:FilterItem name="B" label="{i18n>ProductCategory}">
 									<fb:control>
-										<Select
+                                		<MultiComboBox
     										id="slProductCategory"
-    										change="onSelectChange"
-    										forceSelection="true"
-    										items="{
-                                                        path: 'sales>/Products'
-                                                     }">
-										    <core:Item key="{salesProductKey}" text="{salesProductName}"/>
-										</Select>
+                                			selectionChange="onSelectChange"
+                                			items="{
+                                                path: 'sales>/Products',
+                                				sorter: { path: 'ProductKey' }
+                                			}">
+										    <core:Item key="{sales>ProductKey}" text="{sales>ProductName}"/>
+                                		</MultiComboBox>
 									</fb:control>				
 								</fb:FilterItem>				
 								<fb:FilterItem name="C" label="{i18n>ProductGroup}">
 									<fb:control>
-										<Select
+                                		<MultiComboBox
     										id="slProductGroup"
-    										change="onSelectChange"
-    										forceSelection="true"
-    										items="{
-                                                        path: '/ProductGroups'
-                                                    }">
-										    <core:Item key="{key}" text="{name}"/>
-										</Select>
+                                			selectionChange="onSelectChange"
+                                			items="{
+                                                path: 'sales>/Products',
+                                				sorter: { path: 'ProductKey' }
+                                			}">
+										    <core:Item key="{sales>ProductKey}" text="{sales>ProductName}"/>
+                                		</MultiComboBox>
 									</fb:control>				
 								</fb:FilterItem>
 							</fb:filterItems>
@@ -90,7 +92,7 @@
 			
 			<l:FixFlex class="fixFlexVertical">
 				<l:fixContent>
-			        <u:CalendarMonthInterval id="slTimeframe" width="100%" select="onMonthChange" />
+			        <u:CalendarMonthInterval id="slTimeframe" width="100%" singleSelection="true" intervalSelection="true" select="onMonthChange" />
 				</l:fixContent>
 				<l:flexContent>
 					<vk:MapContainer showSelection="false" showSettings="false" autoAdjustHeight="true">
@@ -124,7 +126,7 @@
 							        <vbm:GeoMap id="map2" initialPosition="-40;20;0" initialZoom="2" openWindow="onOpenDetail" closeWindow="onCloseDetail">
 				                        
 			                        	<vbm:vos>
-					                        <vbm:Areas items="{mapSalesAreasData>/features}" >
+					                        <vbm:Areas id="mapAreas" items="{mapSalesAreasData>/features}" >
 					                        	<vbm:Area id="Area" click="onClickCircle" 
 					                        		tooltip="{mapSalesAreasData>properties/state}" color="{mapSalesAreasData>colors/content}" colorBorder="{mapSalesAreasData>colors/border}"
 					                        		position="{mapSalesAreasData>geometry/shape}" key="{mapSalesAreasData>id}" hotDeltaColor="{mapSalesAreasData>colors/hover}" />

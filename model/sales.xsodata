@@ -29,10 +29,7 @@ service {
         /* keys generate local "ID" */
         aggregates always (SUM of "SALES_QUANTITY", SUM of "REVENUE");
     
-    "gbi-student-006.SalesDataAnalytics.data::SALES_ALL" as "SalesOrg" 
-        with ("SALES_ORGANISATION")
-        key ("SALES_ORGANISATION") 
-        aggregates always;
+    "GBI_DEMO"."GBI_DEMO_SALESORG" as "SalesOrg";
     
     /*
     "GBI_DEMO"."GBI_DEMO_PRODUCT" as "Products";

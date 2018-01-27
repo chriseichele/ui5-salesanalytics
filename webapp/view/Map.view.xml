@@ -49,10 +49,10 @@
                                             id="slSalesOrganisation"
                                 			selectionChange="onSelectChange"
                                 			items="{
-                                                path: 'mapSalesAreasData>/features',
-                                				sorter: { path: 'properties/state' }
+                                                path: 'sales>/SalesOrg',
+                                				sorter: { path: 'SHORT_TEXT' }
                                 			}">
-										<core:Item key="{mapSalesAreasData>id}" text="{mapSalesAreasData>properties/state}" />
+										<core:Item key="{sales>SALES_ORGANISATION}" text="{sales>SHORT_TEXT}" />
 									</MultiComboBox>
 								</fb:control>
 							</fb:FilterItem>
@@ -95,21 +95,22 @@
 				<l:flexContent>
 					<vk:MapContainer showSelection="false" showSettings="false" autoAdjustHeight="true">
 						<vk:listPanelStack>
-							<vk:ListPanelStack width="200px">
+							<vk:ListPanelStack width="250px">
 								<vk:content>
 									<vk:ListPanel headerText="{i18n>legend}" selectionMode="SingleSelectMaster"
-			        					headerIcon="sap-icon://legend" expanded="{= !${device>/system/phone} }">
+			        					headerIcon="sap-icon://legend" expanded="{= ( !${device>/system/phone} &amp;&amp; ${device>/resize/width} > 900 ) }">
 										<vk:items>
-											<GroupHeaderListItem title="{i18n>legendSalesPast}" upperCase="false" />
-											<vk:LegendItem title="0% - 25%" color="{/ColorLegend/Now/1}" />
-											<vk:LegendItem title="25% - 50%" color="{/ColorLegend/Now/2}" />
-											<vk:LegendItem title="50% - 75%" color="{/ColorLegend/Now/3}" />
-											<vk:LegendItem title="75% - 100%" color="{/ColorLegend/Now/4}" />
-											<GroupHeaderListItem title="{i18n>legendSalesFuture}" upperCase="false" />
-											<vk:LegendItem title="0% - 25%" color="{/ColorLegend/Predicted/1}" />
-											<vk:LegendItem title="25% - 50%" color="{/ColorLegend/Predicted/2}" />
-											<vk:LegendItem title="50% - 75%" color="{/ColorLegend/Predicted/3}" />
-											<vk:LegendItem title="75% - 100%" color="{/ColorLegend/Predicted/4}" />
+											<GroupHeaderListItem title="{i18n>Revenue} {i18n>legendSalesPast}" upperCase="false" />
+											<vk:LegendItem title="{i18n>upTo} 25% (= {path:'/Legend/Revenue/1', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Now/1}" />
+											<vk:LegendItem title="{i18n>upTo} 50% (= {path:'/Legend/Revenue/2', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Now/2}" />
+											<vk:LegendItem title="{i18n>upTo} 75% (= {path:'/Legend/Revenue/3', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Now/3}" />
+											<vk:LegendItem title="{i18n>upTo} 100% (= {path:'/Legend/Revenue/4', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Now/4}" />
+											<GroupHeaderListItem title="{i18n>Revenue} {i18n>legendSalesFuture}" upperCase="false" />
+											<vk:LegendItem title="{i18n>upTo} 25% (= {path:'/Legend/Revenue/1', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Predicted/1}" />
+											<vk:LegendItem title="{i18n>upTo} 50% (= {path:'/Legend/Revenue/2', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Predicted/2}" />
+											<vk:LegendItem title="{i18n>upTo} 75% (= {path:'/Legend/Revenue/3', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Predicted/3}" />
+											<vk:LegendItem title="{i18n>upTo} 100% (= {path:'/Legend/Revenue/4', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Predicted/4}" />
+											<vk:LegendItem title="{i18n>over} 100%" color="{/Legend/Color/Predicted/5}" />
 										</vk:items>
 									</vk:ListPanel>
 								</vk:content>

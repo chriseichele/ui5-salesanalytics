@@ -24,8 +24,9 @@ service {
         aggregates always; 
     
     "gbi-student-006.SalesDataAnalytics.data::SALES_CUBE" as "SalesCube" 
-        /*with ("MONTH", "YEAR", "CITY", "CUSTOMER", "SALES_ORGANISATION","SALES_QUANTITY", "REVENUE")*/
-        keys generate local "ID"
+        with ("YEAR", "MONTH", "SALES_ORGANISATION", "SHAPE", "REVENUE","SALES_QUANTITY")
+        key ("YEAR", "MONTH", "SALES_ORGANISATION") 
+        /* keys generate local "ID" */
         aggregates always (SUM of "SALES_QUANTITY", SUM of "REVENUE");
     
     "gbi-student-006.SalesDataAnalytics.data::SALES_ALL" as "SalesOrg" 

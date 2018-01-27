@@ -1,0 +1,11 @@
+.mapLayerSelectedText, 
+.mapLayerPopoverItemText { 
+    /* hide texts in maplayer select */
+    display: none; 
+}
+
+.sapFDynamicPageContent,
+.sapFDynamicPageContentFitContainer {
+    /* no initial padding in dynamic page content */
+    padding: 0px !important;
+}

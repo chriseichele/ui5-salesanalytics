@@ -8,12 +8,16 @@
   <calculationView xsi:type="Calculation:SqlScriptView" id="Script_View">
     <viewAttributes>
       <viewAttribute id="SALESORG" datatype="VARCHAR" length="4"/>
-      <viewAttribute id="SHAPE" datatype="TEXT"/>
+      <viewAttribute id="SHAPE" datatype="VARCHAR" length="5000"/>
     </viewAttributes>
     <calculatedViewAttributes/>
     <definition>/********* Begin Procedure Script ************/ 
 BEGIN 
-   var_out = select SALESORGANISATION as SALESORG, SHAPE.ST_ASGeoJson() AS SHAPE from &quot;GBI_DEMO&quot;.&quot;GBI_DEMO_SALESORG_GPS&quot;; 
+   var_out = select 
+               SALESORGANISATION as SALESORG, 
+               SHAPE.ST_ASGeoJson() AS SHAPE 
+             from 
+               &quot;GBI_DEMO&quot;.&quot;GBI_DEMO_SALESORG_GPS&quot;; 
 
 END /********* End Procedure Script ************/</definition>
   </calculationView>

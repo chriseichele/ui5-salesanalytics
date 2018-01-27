@@ -99,6 +99,8 @@
       <viewAttribute id="SALES_ORGANISATION"/>
       <viewAttribute id="VALID_FROM"/>
       <viewAttribute id="VALID_TO"/>
+    
+      <viewAttribute id="SHAPE"/>
     </viewAttributes>
     <calculatedViewAttributes/>
     <input node="#Join_1">
@@ -130,6 +132,7 @@
       <mapping xsi:type="Calculation:AttributeMapping" target="SALES_ORGANISATION" source="SALES_ORGANISATION"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="VALID_FROM" source="VALID_FROM"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="VALID_TO" source="VALID_TO"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="SHAPE" source="SHAPE"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="CUSTOMER_NUMBER" source="CUSTOMER_NUMBER"/>
     </input>
     <joinAttribute name="CUSTOMER_NUMBER"/>
@@ -241,8 +244,26 @@
       <descriptions defaultDescription="VALID_TO"/>
       <keyMapping columnObjectName="Join_2" columnName="VALID_TO"/>
     </attribute>
+  
+    <attribute id="SHAPE" order="27" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="SHAPE"/>
+      <keyMapping columnObjectName="Join_2" columnName="SHAPE"/>
+    </attribute>
   </attributes>
-  <calculatedAttributes/>
+  <calculatedAttributes>
+    <calculatedAttribute id="Quartals" order="28" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Quartals"/>
+      <keyCalculation datatype="VARCHAR" length="1" expressionLanguage="COLUMN_ENGINE">
+        <formula>&quot;MONTH&quot;/4</formula>
+      </keyCalculation>
+    </calculatedAttribute>
+    <calculatedAttribute id="Cat_Months" order="29" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Cat_Months"/>
+      <keyCalculation datatype="VARCHAR" length="1" expressionLanguage="COLUMN_ENGINE">
+        <formula>case(&quot;MONTH&quot;=11 OR &quot;MONTH&quot;=12 OR &quot;MONTH&quot;=1, 1) OR case(&quot;MONTH&quot;=5 OR &quot;MONTH&quot;=4 OR &quot;MONTH&quot;=6, 2)</formula>
+      </keyCalculation>
+    </calculatedAttribute>
+  </calculatedAttributes>
   <baseMeasures/>
   <calculatedMeasures/>
   <restrictedMeasures/>

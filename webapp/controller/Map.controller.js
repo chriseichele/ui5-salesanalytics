@@ -2,10 +2,8 @@
 sap.ui.define([
 	    "de/tum/in/i17/leonardo/ws1718/salesanalytics/controller/BaseController",
         "sap/ui/vbm/AnalyticMap",
-        "sap/ui/model/json/JSONModel",
-	    "sap/ui/model/Filter",
-        "sap/ui/Device"
-    ], function(BaseController, AnalyticMap, JSONModel, Filter, Device) {
+        "sap/ui/model/json/JSONModel"
+    ], function(BaseController, AnalyticMap, JSONModel) {
 	"use strict";
 
 	//AnalyticMap.GeoJSONURL = "https://sapui5.netweaver.ondemand.com/1.50.8/test-resources/sap/ui/vbm/demokit/media/analyticmap/L0.json";
@@ -30,48 +28,114 @@ sap.ui.define([
 			this.oSelectSalesOrg = this.getSelect("slSalesOrganisation");
 			this.oSelectProductCategory = this.getSelect("slProductCategory");
 			this.oSelectProductGroup = this.getSelect("slProductGroup");
-			this.aKeys = ["SalesArea", "ProductCategory", "ProductGroup"];
-			//this.aKeys = 
-		    //let test = this.getView().byId("FilterBar").getAllFilterItems();
 		    
 			this.oModel.setProperty("/Filter", { "text" : this.getFormattedSummaryText([]) });
 			this.addSnappedLabel();
 			
-			/* sales areas */
-		    this.oAreasModel = new JSONModel("/gbi-student-006/SalesDataAnalytics/model/requestSalesOrg.xsjs");
-		    this.setModel(this.oAreasModel, "mapSalesAreasData");
-		    let me = this;
-		    me.oAreasModel.attachRequestCompleted(function() {
-		        /* stringyfy coordinates into shape for map */
-                me.oAreasModel.getProperty("/features/").forEach(function(feature,i){
-                    let shape = "";
-                    feature.geometry.coordinates.pop().forEach(function(coor){
-                        let x = coor.pop();
-                        let y = coor.pop();
-                        shape = shape + y + ";" + x + ";0;";
-                    });
-                    shape = shape.substring(0, shape.length - 1);
-                    me.oAreasModel.setProperty("/features/" + i + "/geometry/shape",shape);
-                    me.oAreasModel.setProperty("/features/" + i + "/colors",{"content":"rgba(92,186,230,0.6)","border":"rgba(92,186,230,0.8)","hover":"RHLSA(0;1.1;1.0;1.0)"});
-                });
-            });
-			
+		    this.oModel.setProperty("/ColorLegend",{"Now":{
+		                                                "1":"rgba(175, 223, 255, 0.8)",
+		                                                "2":"rgba(132, 185, 231, 0.8)",
+		                                                "3":"rgba(75, 134, 199, 0.8)",
+		                                                "4":"rgba(32, 96, 175, 0.8)"},
+		                                            "Predicted":{
+		                                                "1":"rgba(255, 255, 200, 0.8)",
+		                                                "2":"rgba(255, 219, 124, 0.8)",
+		                                                "3":"rgba(255, 192, 62, 0.8)",
+		                                                "4":"rgba(255, 165, 0, 0.8)"} } );
+            
 			/* init time slider */
-			let iYearStart = 2007;
-			let iYearEnd = 2011;
-			let iYearNow = new Date().getFullYear();
-			let iYearsForecast = 3;
-			this.oSliderTimeframe.setMinDate(new Date(Date.UTC(iYearStart, 0, 1)));
-			if(iYearNow > iYearEnd) {
-			    this.oSliderTimeframe.setMaxDate(new Date(Date.UTC(iYearNow + 1 + iYearsForecast, 0, 0)));
-			} else {
-			    this.oSliderTimeframe.setMaxDate(new Date(Date.UTC(iYearEnd + 1 + iYearsForecast, 0, 0)));
-			}
-			this.oSliderTimeframe.setStartDate(this.oSliderTimeframe.getMinDate());
-			this.oSliderTimeframe.addSelectedDate(new sap.ui.unified.DateRange({"startDate":this.oSliderTimeframe.getStartDate()}));
+			this.configureTimePicker();
             
             /* configure geo map */
 			this.configureGeoMap();
+			
+			this.getRouter().getRoute("map").attachPatternMatched(this._onObjectMatched, this);
+		},
+		
+		onAfterRendering : function() {
+		    
+		    /* watch map layer change */
+		    let domCurrentMapLayer = document.getElementsByClassName("mapLayerSelectedText")[0];
+		    let me = this;
+		    domCurrentMapLayer.addEventListener('DOMSubtreeModified', function(){ 
+		        me.updateCurrentRoute();
+            });
+		    
+            /* get sales data */
+            this.oSalesModel = this.getModel("sales");
+            
+            let iRevenueMin;
+            this.oSalesModel.read("/SalesCube", 
+                                    { 
+                                        urlParameters: { 
+                                            '$select': 'YEAR,MONTH,SALES_ORGANISATION,SHAPE,REVENUE,SALES_QUANTITY', 
+                                            '$orderby': 'REVENUE asc', 
+                                            '$top': '1' 
+                                        },
+                                        success: function(oData){ iRevenueMin = oData.results.pop().REVENUE; }
+                                    }
+                                  );
+            let iRevenueMax;
+            this.oSalesModel.read("/SalesCube", 
+                                    { 
+                                        urlParameters: { 
+                                            '$select': 'YEAR,MONTH,SALES_ORGANISATION,SHAPE,REVENUE,SALES_QUANTITY', 
+                                            '$orderby': 'REVENUE desc', 
+                                            '$top': '1' 
+                                        },
+                                        success: function(oData){ iRevenueMax = oData.results.pop().REVENUE; }
+                                    }
+                                  );
+
+            this.oSalesModel.attachRequestCompleted(function(){
+                //TODO
+                //if(!this.oSalesModel.aBindings[2].bPendingRequest) {
+                    let items = this.oSalesModel.getProperty("/");
+                    for(let k in items) {
+                        if (typeof items[k] !== 'function') {
+                            items[k].position = "";
+                            if(items[k].SHAPE){
+                                let shapeFeatures = JSON.parse(items[k].SHAPE);
+                                if(shapeFeatures) {
+                                    shapeFeatures.coordinates.pop().forEach(function(coor){
+                                        let x = coor.pop();
+                                        let y = coor.pop();
+                                        items[k].position = items[k].position + y + ";" + x + ";0;";
+                                    });
+                                    items[k].position = items[k].position.substring(0, items[k].position.length - 1);
+                                }
+                            }
+                            
+                            items[k].tooltip = "test";//TODO set sales area name
+                            let iRevenueSteps = (iRevenueMax - iRevenueMin) / 4;
+                            let iRevenueCurrentAboveMin = items[k].REVENUE - iRevenueMin;
+                            let sColorContent;
+                            switch (true) {
+                              case (iRevenueCurrentAboveMin < iRevenueSteps * 1):
+                                sColorContent = this.oModel.getProperty("/ColorLegend/Now/1");
+                                 break;
+                              case (iRevenueCurrentAboveMin < iRevenueSteps * 2):
+                                sColorContent = this.oModel.getProperty("/ColorLegend/Now/2");
+                                 break;
+                              case (iRevenueCurrentAboveMin < iRevenueSteps * 3):
+                                sColorContent = this.oModel.getProperty("/ColorLegend/Now/3");
+                                 break;
+                              default:
+                                sColorContent = this.oModel.getProperty("/ColorLegend/Now/4");
+                            }
+                            items[k].colors = {"content":sColorContent,"border":"rgba(180,180,180,0.9)","hover":"RHLSA(0;1.1;1.0;1.0)"};
+                        }
+                    }
+                //}
+            },this);
+		    
+		    /* initialize Filters */
+		    this.aKeys = [];
+		    this.getView().byId("FilterBar").getFilterItems().forEach(function(filter){
+		        this.aKeys.push(filter.getLabel());
+		    }, this);
+			/* do first filtering */
+			this.doFilterMap();
 		},
 
 		onExit : function () {
@@ -81,7 +145,49 @@ sap.ui.define([
 			
 			this.oModel = null;
 			this.aKeys = [];
-			this.aFilters = [];
+		},
+		
+		_onObjectMatched: function (oEvent) {
+		    let sMapType = oEvent.getParameter("arguments").mapType;
+		    if(sMapType) {
+		        let oMapConfig = this.oGeoMap.getMapConfiguration();
+		        if(oMapConfig.MapLayerStacks.find(function(layer){return layer.name === sMapType;})){
+			        this.oGeoMap.setRefMapLayerStack(sMapType);
+		        }
+		    }
+			
+			let iYear = oEvent.getParameter("arguments").year;
+		    if(iYear) {
+		        
+    		    let iMonth = oEvent.getParameter("arguments").month;
+    		    if(!iMonth) {
+    		        iMonth = 1;
+    		    }
+		        
+		        let iYearMin = this.oSliderTimeframe.getMinDate().getFullYear();
+		        let iYearMax = this.oSliderTimeframe.getMaxDate().getFullYear();
+		        let iMonthMin = this.oSliderTimeframe.getMinDate().getMonth() + 1;
+		        let iMonthMax = this.oSliderTimeframe.getMaxDate().getMonth() + 1;
+		        
+		        if(iYear < iYearMin) {
+		            iYear = iYearMin;
+		            iMonth = 1;
+		        } else if(iYear > iYearMax) {
+		            iYear = iYearMax;
+		            iMonth = 12;
+		        }
+	            if(iMonth < iMonthMin) {
+    		        iMonth = iMonthMin;
+    		    } else if(iMonth > iMonthMax) {
+    		        iMonth = iMonthMax;
+    		    }
+    		    
+    		    let d = new Date(Date.UTC(iYear, iMonth - 1, 1));
+    		    let d0 = new Date(Date.UTC(iYear, 0, 1));
+    		    this.oSliderTimeframe.removeAllSelectedDates();
+    			this.oSliderTimeframe.addSelectedDate(new sap.ui.unified.DateRange({"startDate":d}));
+    			this.oSliderTimeframe.setStartDate(d0);
+		    }
 		},
 		
 		onToggleHeader: function () {
@@ -95,22 +201,45 @@ sap.ui.define([
 		onSelectChange: function() {
 			var aCurrentFilterValues = [];
 
-			//aCurrentFilterValues.push(this.getSelectedItemText(this.oSelectSalesOrg));
 			aCurrentFilterValues.push(this.oSelectSalesOrg.getSelectedItems());
-			aCurrentFilterValues.push(this.getSelectedItemText(this.oSelectProductCategory));
-			aCurrentFilterValues.push(this.getSelectedItemText(this.oSelectProductGroup));
+			aCurrentFilterValues.push(this.oSelectProductCategory.getSelectedItems());
+			aCurrentFilterValues.push(this.oSelectProductGroup.getSelectedItems());
 
-			this.filterMap(aCurrentFilterValues);
+			this.doFilterMap();
+			this.updateFilterCriterias(this.getFilterCriteria(aCurrentFilterValues));
+		},
+		
+		onTimepicker: function() {
+		    this.onMonthChange();
+		    this.oGeoMap.rerender();
+			this.doFilterMap();
+			
+			this.updateCurrentRoute();
 		},
 		
 		onMonthChange: function() {
-			sap.m.MessageToast.show(this.oSliderTimeframe.getSelectedDates().pop().getStartDate());
+		    let oDateRange = this.oSliderTimeframe.getSelectedDates().pop();
+		    let d = oDateRange.getStartDate();
+		    this.oModel.setProperty("/DateStart",d);
+		    //this.oModel.setProperty("/DateEnd",oDateRange.getEndDate());
+			//sap.m.MessageToast.show(oDateRange.getStartDate() + " - " + oDateRange.getEndDate());
 		},
 
-		filterMap: function (aCurrentFilterValues) {
-		    //this.oAreasModel.filter(this.getFilters(aCurrentFilterValues));
-			//this.getTableItems().filter(this.getFilters(aCurrentFilterValues));
-			this.updateFilterCriterias(this.getFilterCriteria(aCurrentFilterValues));
+		doFilterMap: function () {
+		    let aFilter = [];
+		    this.oSelectSalesOrg.getSelectedItems().forEach(function(el){
+		        if(el.getKey()){
+		            aFilter.push(new sap.ui.model.Filter("SALES_ORGANISATION", sap.ui.model.FilterOperator.Contains, el.getKey()));
+		        }
+		    });
+		    
+		    aFilter.push(new sap.ui.model.Filter("YEAR", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getFullYear()));
+		    aFilter.push(new sap.ui.model.Filter("MONTH", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getMonth()+1));
+		    
+		    let oMapAreaItems = this.getView().byId("mapAreasNow").getBinding("items");
+		    if(oMapAreaItems) {
+		        oMapAreaItems.filter(aFilter, sap.ui.model.FilterType.Application);
+		    }
 		},
 
 		updateFilterCriterias : function (aFilterCriterias) {
@@ -130,17 +259,17 @@ sap.ui.define([
 		},
 
 		getFilters: function (aCurrentFilterValues) {
-			this.aFilters = [];
+			let aFilters = [];
 
-			this.aFilters = this.aKeys.map(function (sCriteria, i) {
+			aFilters = this.aKeys.map(function (sCriteria, i) {
 				return new sap.ui.model.Filter(sCriteria, sap.ui.model.FilterOperator.Contains, aCurrentFilterValues[i]);
 			});
 
-			return this.aFilters;
+			return aFilters;
 		},
 		getFilterCriteria : function (aCurrentFilterValues){
 			return this.aKeys.filter(function (el, i) {
-				if (aCurrentFilterValues[i] !== "") { 
+				if (aCurrentFilterValues[i] !== "" && aCurrentFilterValues[i].length > 0) { 
 				    return  el;
 			    }
 			});
@@ -195,11 +324,6 @@ sap.ui.define([
 			}
 		},
 
-		onRegionClick: function(oEvent) {
-		    console.log("onRegionClick " + oEvent.getParameter("code"));
-			sap.m.MessageToast.show(oEvent.oSource.mNames[oEvent.getParameter("code")]);
-		},
-
 		onClickCircle: function(oEvent) {
 		    /* handle click on data-element on map */
 		    /* opens popover with additional information and jump options */
@@ -212,8 +336,8 @@ sap.ui.define([
 				this.getView().addDependent(this._oPopover);
 			}
 			if (this._oPopover) {
-				if(oClickedElement.oPropagatedProperties.oBindingContexts.mapData){
-				    //this._oPopover.bindElement("mapData>"+oClickedElement.oPropagatedProperties.oBindingContexts.mapData.sPath);
+				if(oClickedElement.oBindingContexts.sales){
+				    this._oPopover.bindElement("sales>" + oClickedElement.oBindingContexts.sales.sPath);
 				}
 			}
 
@@ -291,7 +415,7 @@ sap.ui.define([
 		 * @public
 		 */
 		onShareInJamPress: function() {
-			oShareDialog = sap.ui.getCore().createComponent({
+			let oShareDialog = sap.ui.getCore().createComponent({
 				name: "sap.collaboration.components.fiori.sharing.dialog",
 				settings: {
 					object: {
@@ -304,12 +428,38 @@ sap.ui.define([
 		},
 		
 		/* HELP FUNCTIONS */
+		
+		configureTimePicker: function() {
+			let iYearStart = 2007;
+			let iYearEnd = 2011;
+			let iYearNow = new Date().getFullYear();
+			let iYearsForecast = 3;
+			
+			this.oSliderTimeframe.setMinDate(new Date(Date.UTC(iYearStart, 0, 1)));
+			if(iYearNow > iYearEnd) {
+			    this.oSliderTimeframe.setMaxDate(new Date(Date.UTC(iYearNow + 1 + iYearsForecast, 0, 0)));
+			} else {
+			    this.oSliderTimeframe.setMaxDate(new Date(Date.UTC(iYearEnd + 1 + iYearsForecast, 0, 0)));
+			}
+			this.oSliderTimeframe.setStartDate(this.oSliderTimeframe.getMinDate());
+			
+			let oSelectedDateStart = this.oSliderTimeframe.getStartDate();
+		    this.oSliderTimeframe.removeAllSelectedDates();
+			this.oSliderTimeframe.addSelectedDate(new sap.ui.unified.DateRange({"startDate":oSelectedDateStart}));
+			/*
+			let oSelectedDateEnd = new Date(oSelectedDateStart);
+			oSelectedDateEnd.setDate(oSelectedDateStart.getDate() + 364);
+			this.oSliderTimeframe.addSelectedDate(new sap.ui.unified.DateRange({"startDate":oSelectedDateStart,"endDate":oSelectedDateEnd}));
+			*/
+			
+			this.onMonthChange();
+		},
 
         configureGeoMap: function() {
 			var sLanguage = sap.ui.getCore().getConfiguration().getLanguage();
 
 			/* geo map configuration */
-			var oGeoMap = this.getView().byId("map2");
+			this.oGeoMap = this.getView().byId("map2");
 			var oMapConfig = {
 				"MapProvider": [
 				    {
@@ -355,7 +505,7 @@ sap.ui.define([
 					    "copyright": "© Google Maps",
 					    "Source": [{
 						    "id": "s1",
-						    "url": "https://mt.google.com/vt/x={X}&y={Y}&z={LOD}&hl="+sLanguage
+						    "url": "https://mt.google.com/vt/x={X}&y={Y}&z={LOD}&hl=" + sLanguage
                         }]
                     }
                 ],
@@ -388,7 +538,7 @@ sap.ui.define([
 					    }
                     },
 				    {
-				    	"name": "B/W",
+				    	"name": "BlackWhite",
 				    	"MapLayer": {
 					    	"name": "layer1",
 					    	"refMapProvider": "STAMEN_TONER",
@@ -407,9 +557,17 @@ sap.ui.define([
                     }
                 ]
 			};
-			oGeoMap.setMapConfiguration(oMapConfig);
-			oGeoMap.setRefMapLayerStack("OpenStreet");
-	    }
+			this.oGeoMap.setMapConfiguration(oMapConfig);
+			this.oGeoMap.setRefMapLayerStack("OpenStreet");
+	    },
+		
+		updateCurrentRoute: function() {
+			this.getRouter().navTo("map", { 
+				mapType : this.oGeoMap.getRefMapLayerStack(),
+				year : this.oModel.getProperty("/DateStart").getFullYear(),
+				month : this.oModel.getProperty("/DateStart").getMonth() + 1
+			}, true);
+		}
 
 	});
 

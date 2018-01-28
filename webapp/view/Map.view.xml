@@ -43,7 +43,7 @@
 				<f:content>
 					<fb:FilterBar id="FilterBar" reset="onReset" search="onSearch" useToolbar="false" showGoOnFB="false">
 						<fb:filterItems>
-							<fb:FilterItem name="A" label="{i18n>SalesOrg}">
+							<fb:FilterItem name="salesorg" label="{i18n>SalesOrg}">
 								<fb:control>
 									<MultiComboBox
                                             id="slSalesOrganisation"
@@ -56,29 +56,16 @@
 									</MultiComboBox>
 								</fb:control>
 							</fb:FilterItem>
-							<fb:FilterItem name="B" label="{i18n>ProductCategory}">
-								<fb:control>
-									<MultiComboBox
-    										id="slProductCategory"
-                                			selectionChange="onSelectChange"
-                                			items="{
-                                                path: 'sales>/Products',
-                                				sorter: { path: 'ProductKey' }
-                                			}">
-										<core:Item key="{sales>ProductKey}" text="{sales>ProductName}"/>
-									</MultiComboBox>
-								</fb:control>
-							</fb:FilterItem>
-							<fb:FilterItem name="C" label="{i18n>ProductGroup}">
+							<fb:FilterItem name="prodgroup" label="{i18n>ProductGroup}">
 								<fb:control>
 									<MultiComboBox
     										id="slProductGroup"
                                 			selectionChange="onSelectChange"
                                 			items="{
-                                                path: 'sales>/Products',
-                                				sorter: { path: 'ProductKey' }
+                                                path: 'sales>/ProductGroups',
+                                				sorter: { path: 'PRODUCT_GROUP' }
                                 			}">
-										<core:Item key="{sales>ProductKey}" text="{sales>ProductName}"/>
+										<core:Item key="{sales>PRODUCT_GROUP}" text="{sales>PRODUCT_GROUP}"/>
 									</MultiComboBox>
 								</fb:control>
 							</fb:FilterItem>
@@ -100,17 +87,17 @@
 									<vk:ListPanel headerText="{i18n>legend}" selectionMode="SingleSelectMaster"
 			        					headerIcon="sap-icon://legend" expanded="{= ( !${device>/system/phone} &amp;&amp; ${device>/resize/width} > 900 ) }">
 										<vk:items>
-											<GroupHeaderListItem title="{i18n>Revenue} {i18n>legendSalesPast}" upperCase="false" />
-											<vk:LegendItem title="{i18n>upTo} 25% (= {path:'/Legend/Revenue/1', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Now/1}" />
-											<vk:LegendItem title="{i18n>upTo} 50% (= {path:'/Legend/Revenue/2', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Now/2}" />
-											<vk:LegendItem title="{i18n>upTo} 75% (= {path:'/Legend/Revenue/3', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Now/3}" />
-											<vk:LegendItem title="{i18n>upTo} 100% (= {path:'/Legend/Revenue/4', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Now/4}" />
-											<GroupHeaderListItem title="{i18n>Revenue} {i18n>legendSalesFuture}" upperCase="false" />
-											<vk:LegendItem title="{i18n>upTo} 25% (= {path:'/Legend/Revenue/1', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Predicted/1}" />
-											<vk:LegendItem title="{i18n>upTo} 50% (= {path:'/Legend/Revenue/2', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Predicted/2}" />
-											<vk:LegendItem title="{i18n>upTo} 75% (= {path:'/Legend/Revenue/3', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Predicted/3}" />
-											<vk:LegendItem title="{i18n>upTo} 100% (= {path:'/Legend/Revenue/4', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} })" color="{/Legend/Color/Predicted/4}" />
-											<vk:LegendItem title="{i18n>over} 100%" color="{/Legend/Color/Predicted/5}" />
+											<GroupHeaderListItem title="{i18n>legendSalesPast}" upperCase="false" />
+											<vk:LegendItem title="{i18n>upTo} {path:'/Legend/Revenue/1', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} }" color="{/Legend/Color/Now/1}" />
+											<vk:LegendItem title="{i18n>upTo} {path:'/Legend/Revenue/2', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} }" color="{/Legend/Color/Now/2}" />
+											<vk:LegendItem title="{i18n>upTo} {path:'/Legend/Revenue/3', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} }" color="{/Legend/Color/Now/3}" />
+											<vk:LegendItem title="{i18n>upTo} {path:'/Legend/Revenue/4', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} }" color="{/Legend/Color/Now/4}" />
+											<GroupHeaderListItem title="{i18n>legendSalesFuture}" upperCase="false" />
+											<vk:LegendItem title="{i18n>upTo} {path:'/Legend/Revenue/1', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} }" color="{/Legend/Color/Predicted/1}" />
+											<vk:LegendItem title="{i18n>upTo} {path:'/Legend/Revenue/2', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} }" color="{/Legend/Color/Predicted/2}" />
+											<vk:LegendItem title="{i18n>upTo} {path:'/Legend/Revenue/3', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} }" color="{/Legend/Color/Predicted/3}" />
+											<vk:LegendItem title="{i18n>upTo} {path:'/Legend/Revenue/4', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} }" color="{/Legend/Color/Predicted/4}" />
+											<vk:LegendItem title="{i18n>over} {path:'/Legend/Revenue/4', type:'sap.ui.model.type.Float', formatOptions:{style:'short'} }" color="{/Legend/Color/Predicted/5}" />
 										</vk:items>
 									</vk:ListPanel>
 								</vk:content>
@@ -122,14 +109,14 @@
 									<vbm:GeoMap id="map2" initialPosition="-40;20;0" initialZoom="2" openWindow="onOpenDetail" closeWindow="onCloseDetail">
 										
 										<vbm:vos>
-											<vbm:Areas id="mapAreasNow" items="{ path: 'sales>/SalesCube', parameters: { select: 'YEAR,MONTH,SALES_ORGANISATION,SHAPE,REVENUE,SALES_QUANTITY' } }" >
+											<vbm:Areas id="mapAreasNow" items="{sales2>/SalesMonth}" >
 												<vbm:Area id="AreaNow" click="onClickCircle" 
-					                        		tooltip="{sales>SALES_ORGANISATION}:{sales>YEAR}/{sales>MONTH}" 
-					                        		color="{sales>colors/content}" 
-					                        		colorBorder="{sales>colors/border}"
-					                        		position="{sales>position}" 
-					                        		key="{sales>SALES_ORGANISATION}" 
-					                        		hotDeltaColor="{sales>colors/hover}" />
+					                        		tooltip="{sales2>tooltip}" 
+					                        		color="{path: 'sales2>REVENUE', formatter: '.formatter.revenueColor' }"
+					                        		colorBorder="rgba(180,180,180,0.9)"
+					                        		position="{sales2>position}" 
+					                        		key="{sales2>SALES_ORGANISATION}" 
+					                        		hotDeltaColor="RHLSA(0;1.1;1.0;1.0)" />
 											</vbm:Areas>
 										</vbm:vos>
 										

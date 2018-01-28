@@ -26,22 +26,22 @@ sap.ui.define([
 
 			this.oSliderTimeframe = this.getSelect("slTimeframe");
 			this.oSelectSalesOrg = this.getSelect("slSalesOrganisation");
-			this.oSelectProductCategory = this.getSelect("slProductCategory");
 			this.oSelectProductGroup = this.getSelect("slProductGroup");
 		    
 			this.oModel.setProperty("/Filter", { "text" : this.getFormattedSummaryText([]) });
 			this.addSnappedLabel();
 			
-		    this.oModel.setProperty("/ColorLegend",{"Now":{
+		    this.oModel.setProperty("/Legend",{"Color":{"Now":{
 		                                                "1":"rgba(175, 223, 255, 0.8)",
 		                                                "2":"rgba(132, 185, 231, 0.8)",
 		                                                "3":"rgba(75, 134, 199, 0.8)",
 		                                                "4":"rgba(32, 96, 175, 0.8)"},
 		                                            "Predicted":{
-		                                                "1":"rgba(255, 255, 200, 0.8)",
-		                                                "2":"rgba(255, 219, 124, 0.8)",
-		                                                "3":"rgba(255, 192, 62, 0.8)",
-		                                                "4":"rgba(255, 165, 0, 0.8)"} } );
+		                                                "1":"rgba(200, 245, 140, 0.8)",
+		                                                "2":"rgba(150, 225, 110, 0.8)",
+		                                                "3":"rgba(100, 200, 80, 0.8)",
+		                                                "4":"rgba(50, 180, 50, 0.8)",
+		                                                "5":"rgba(0, 150, 20, 0.8)"} } } );
             
 			/* init time slider */
 			this.configureTimePicker();
@@ -54,80 +54,17 @@ sap.ui.define([
 		
 		onAfterRendering : function() {
 		    
+			this.configureMapSalesData();
+		    
+		    /* filter select on language */
+			this.oSelectSalesOrg.getBinding("items").filter(
+			    new sap.ui.model.Filter("LANGU", sap.ui.model.FilterOperator.EQ, sap.ui.getCore().getConfiguration().getLanguage().toUpperCase().substring(0,1), sap.ui.model.FilterType.Application));
+		    
 		    /* watch map layer change */
 		    let domCurrentMapLayer = document.getElementsByClassName("mapLayerSelectedText")[0];
-		    let me = this;
 		    domCurrentMapLayer.addEventListener('DOMSubtreeModified', function(){ 
-		        me.updateCurrentRoute();
-            });
-		    
-            /* get sales data */
-            this.oSalesModel = this.getModel("sales");
-            
-            let iRevenueMin;
-            this.oSalesModel.read("/SalesCube", 
-                                    { 
-                                        urlParameters: { 
-                                            '$select': 'YEAR,MONTH,SALES_ORGANISATION,SHAPE,REVENUE,SALES_QUANTITY', 
-                                            '$orderby': 'REVENUE asc', 
-                                            '$top': '1' 
-                                        },
-                                        success: function(oData){ iRevenueMin = oData.results.pop().REVENUE; }
-                                    }
-                                  );
-            let iRevenueMax;
-            this.oSalesModel.read("/SalesCube", 
-                                    { 
-                                        urlParameters: { 
-                                            '$select': 'YEAR,MONTH,SALES_ORGANISATION,SHAPE,REVENUE,SALES_QUANTITY', 
-                                            '$orderby': 'REVENUE desc', 
-                                            '$top': '1' 
-                                        },
-                                        success: function(oData){ iRevenueMax = oData.results.pop().REVENUE; }
-                                    }
-                                  );
-
-            this.oSalesModel.attachRequestCompleted(function(){
-                //TODO
-                //if(!this.oSalesModel.aBindings[2].bPendingRequest) {
-                    let items = this.oSalesModel.getProperty("/");
-                    for(let k in items) {
-                        if (typeof items[k] !== 'function') {
-                            items[k].position = "";
-                            if(items[k].SHAPE){
-                                let shapeFeatures = JSON.parse(items[k].SHAPE);
-                                if(shapeFeatures) {
-                                    shapeFeatures.coordinates.pop().forEach(function(coor){
-                                        let x = coor.pop();
-                                        let y = coor.pop();
-                                        items[k].position = items[k].position + y + ";" + x + ";0;";
-                                    });
-                                    items[k].position = items[k].position.substring(0, items[k].position.length - 1);
-                                }
-                            }
-                            
-                            items[k].tooltip = "test";//TODO set sales area name
-                            let iRevenueSteps = (iRevenueMax - iRevenueMin) / 4;
-                            let iRevenueCurrentAboveMin = items[k].REVENUE - iRevenueMin;
-                            let sColorContent;
-                            switch (true) {
-                              case (iRevenueCurrentAboveMin < iRevenueSteps * 1):
-                                sColorContent = this.oModel.getProperty("/ColorLegend/Now/1");
-                                 break;
-                              case (iRevenueCurrentAboveMin < iRevenueSteps * 2):
-                                sColorContent = this.oModel.getProperty("/ColorLegend/Now/2");
-                                 break;
-                              case (iRevenueCurrentAboveMin < iRevenueSteps * 3):
-                                sColorContent = this.oModel.getProperty("/ColorLegend/Now/3");
-                                 break;
-                              default:
-                                sColorContent = this.oModel.getProperty("/ColorLegend/Now/4");
-                            }
-                            items[k].colors = {"content":sColorContent,"border":"rgba(180,180,180,0.9)","hover":"RHLSA(0;1.1;1.0;1.0)"};
-                        }
-                    }
-                //}
-            },this);
+		        this.updateCurrentRoute();
+            }.bind(this));
 		    
 		    /* initialize Filters */
 		    this.aKeys = [];
@@ -159,22 +96,22 @@ sap.ui.define([
 			let iYear = oEvent.getParameter("arguments").year;
 		    if(iYear) {
 		        
-    		    let iMonth = oEvent.getParameter("arguments").month;
+    		    let iMonth = oEvent.getParameter("arguments").month - 1;
     		    if(!iMonth) {
-    		        iMonth = 1;
+    		        iMonth = 0;
     		    }
 		        
 		        let iYearMin = this.oSliderTimeframe.getMinDate().getFullYear();
 		        let iYearMax = this.oSliderTimeframe.getMaxDate().getFullYear();
-		        let iMonthMin = this.oSliderTimeframe.getMinDate().getMonth() + 1;
-		        let iMonthMax = this.oSliderTimeframe.getMaxDate().getMonth() + 1;
+		        let iMonthMin = this.oSliderTimeframe.getMinDate().getMonth();
+		        let iMonthMax = this.oSliderTimeframe.getMaxDate().getMonth();
 		        
 		        if(iYear < iYearMin) {
 		            iYear = iYearMin;
-		            iMonth = 1;
+		            iMonth = 0;
 		        } else if(iYear > iYearMax) {
 		            iYear = iYearMax;
-		            iMonth = 12;
+		            iMonth = 11;
 		        }
 	            if(iMonth < iMonthMin) {
     		        iMonth = iMonthMin;
@@ -182,11 +119,13 @@ sap.ui.define([
     		        iMonth = iMonthMax;
     		    }
     		    
-    		    let d = new Date(Date.UTC(iYear, iMonth - 1, 1));
+    		    let d = new Date(Date.UTC(iYear, iMonth, 1));
     		    let d0 = new Date(Date.UTC(iYear, 0, 1));
     		    this.oSliderTimeframe.removeAllSelectedDates();
     			this.oSliderTimeframe.addSelectedDate(new sap.ui.unified.DateRange({"startDate":d}));
     			this.oSliderTimeframe.setStartDate(d0);
+    			
+		        this.oModel.setProperty("/DateStart",d);
 		    }
 		},
 		
@@ -202,19 +141,42 @@ sap.ui.define([
 			var aCurrentFilterValues = [];
 
 			aCurrentFilterValues.push(this.oSelectSalesOrg.getSelectedItems());
-			aCurrentFilterValues.push(this.oSelectProductCategory.getSelectedItems());
 			aCurrentFilterValues.push(this.oSelectProductGroup.getSelectedItems());
 
+			this.readSalesData(true);
 			this.doFilterMap();
 			this.updateFilterCriterias(this.getFilterCriteria(aCurrentFilterValues));
 		},
 		
 		onTimepicker: function() {
 		    this.onMonthChange();
+		    this.readSalesData();
 		    this.oGeoMap.rerender();
 			this.doFilterMap();
 			
 			this.updateCurrentRoute();
+		},
+		
+		readSalesData: function(doReread) {
+		    if(doReread) {
+		        this.oSalesModelLocal.oData = {};
+		    }
+		    
+		    let aFilter = [ new sap.ui.model.Filter("YEAR", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getFullYear()),
+                           new sap.ui.model.Filter("MONTH", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getMonth() + 1) ];
+		    this.oSelectProductGroup.getSelectedItems().forEach(function(el){
+		        if(el.getKey()){         
+		            let oFilter =  new sap.ui.model.Filter('PRODUCT_GROUP', sap.ui.model.FilterOperator.EQ, el.getKey());          
+		            aFilter.push(oFilter);
+		        }
+		    });
+		    
+            let mParams = {
+                success: this.transformSalesModel.bind(this),
+                urlParameters: { '$select': 'YEAR,MONTH,SALES_ORGANISATION,PRODUCT_GROUP,SHAPE,REVENUE,CURRENCY' },
+                filters: aFilter
+              };
+            this.oSalesModel.read("/SalesMonthProductGroup", mParams );  
 		},
 		
 		onMonthChange: function() {
@@ -232,9 +194,15 @@ sap.ui.define([
 		            aFilter.push(new sap.ui.model.Filter("SALES_ORGANISATION", sap.ui.model.FilterOperator.Contains, el.getKey()));
 		        }
 		    });
+		    this.oSelectProductGroup.getSelectedItems().forEach(function(el){
+		        if(el.getKey()){         
+		            let oFilter =  new sap.ui.model.Filter({ path: 'ProductGroups', test: function(oGroups) { return !!oGroups[el.getKey()]; } });          
+		            aFilter.push(oFilter);
+		        }
+		    });
 		    
 		    aFilter.push(new sap.ui.model.Filter("YEAR", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getFullYear()));
-		    aFilter.push(new sap.ui.model.Filter("MONTH", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getMonth()+1));
+		    aFilter.push(new sap.ui.model.Filter("MONTH", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getMonth() + 1));
 		    
 		    let oMapAreaItems = this.getView().byId("mapAreasNow").getBinding("items");
 		    if(oMapAreaItems) {
@@ -336,8 +304,8 @@ sap.ui.define([
 				this.getView().addDependent(this._oPopover);
 			}
 			if (this._oPopover) {
-				if(oClickedElement.oBindingContexts.sales){
-				    this._oPopover.bindElement("sales>" + oClickedElement.oBindingContexts.sales.sPath);
+				if(oClickedElement.oBindingContexts.sales2){
+				    this._oPopover.bindElement("sales2>" + oClickedElement.oBindingContexts.sales2.sPath);
 				}
 			}
 
@@ -567,7 +535,115 @@ sap.ui.define([
 				year : this.oModel.getProperty("/DateStart").getFullYear(),
 				month : this.oModel.getProperty("/DateStart").getMonth() + 1
 			}, true);
-		}
+		},
+		
+		configureMapSalesData: function() {
+            /* get sales data */
+            this.oSalesModel = this.getModel("sales");
+            this.oModel.setProperty("/Legend/Revenue",{"Min":undefined,"Max":undefined});
+            this.oSalesModel.read("/SalesMonthProductGroup", 
+                                    { 
+                                        urlParameters: { 
+                                            '$select': 'YEAR,MONTH,SALES_ORGANISATION,REVENUE', 
+                                            '$orderby': 'REVENUE asc', 
+                                            '$top': '1' 
+                                        },
+                                        success: function(oData){ let iRevenueMin = oData.results.pop().REVENUE;
+                                        this.oModel.setProperty("/Legend/Revenue/Min",iRevenueMin); }.bind(this)
+                                    }
+                                  );
+            this.oSalesModel.read("/SalesMonthProductGroup", 
+                                    { 
+                                        urlParameters: { 
+                                            '$select': 'YEAR,MONTH,SALES_ORGANISATION,REVENUE', 
+                                            '$orderby': 'REVENUE desc', 
+                                            '$top': '1' 
+                                        },
+                                        success: function(oData){ let iRevenueMax = oData.results.pop().REVENUE;
+                                        this.oModel.setProperty("/Legend/Revenue/Max",iRevenueMax); }.bind(this)
+                                    }
+                                  );
+            this.oSalesModelLocal = new JSONModel();
+            this.setModel(this.oSalesModelLocal,"sales2");
+            this.readSalesData();  
+		},
+		
+		transformSalesModel: function(oData) {
+                
+                //TODO: update legend logic to product groups
+                let iRevenueMin = this.oModel.getProperty("/Legend/Revenue/Min");
+                let iRevenueMax = this.oModel.getProperty("/Legend/Revenue/Max");
+                let iRevenueSteps = (iRevenueMax - iRevenueMin) / 4;
+                this.oModel.setProperty("/Legend/Revenue/1",iRevenueSteps * 1);
+                this.oModel.setProperty("/Legend/Revenue/2",iRevenueSteps * 2);
+                this.oModel.setProperty("/Legend/Revenue/3",iRevenueSteps * 3);
+                this.oModel.setProperty("/Legend/Revenue/4",iRevenueSteps * 4);
+                
+                let items = oData.results;
+                for(let k in items) {
+                    if (typeof items[k] !== 'function') {
+                        if (items[k].__metadata.uri.includes("SalesMonthProductGroup")) {
+                            
+                            /* set aggregated items on month base */
+                            
+                            let sPath = "/SalesMonth";
+                            if(!this.oSalesModelLocal.getProperty(sPath)) {
+                                this.oSalesModelLocal.setProperty(sPath,{});
+                            }
+                            sPath = sPath + "/" + items[k].SALES_ORGANISATION + "_" + items[k].YEAR + "_" + items[k].MONTH;
+                            let oSalesOrg = this.oSalesModelLocal.getProperty(sPath);
+                            if(!oSalesOrg) {
+                                oSalesOrg = { "YEAR":items[k].YEAR,
+                                              "MONTH":items[k].MONTH,
+                                              "SALES_ORGANISATION":items[k].SALES_ORGANISATION,
+                                              "REVENUE":0,
+                                              "CURRENCY":items[k].CURRENCY,
+                                              "tooltip": items[k].SALES_ORGANISATION,
+                                              "ProductGroups":{} };
+                                this.oSalesModelLocal.setProperty(sPath,oSalesOrg);
+                                
+                                /* read text */
+                                
+                                let sLangu = sap.ui.getCore().getConfiguration().getLanguage().toUpperCase().substring(0,1);
+                                this.oSalesModel.read("/SalesOrg(SALES_ORGANISATION='"+items[k].SALES_ORGANISATION+"',LANGU='"+sLangu+"')", 
+                                    {
+                                        success: function(oTooltipObject){ oSalesOrg.tooltip = oTooltipObject.SHORT_TEXT; }.bind(this)
+                                    }
+                                  );
+                                
+                                /* create geo shape */
+                                if(items[k].SHAPE){
+                                    let shapeFeatures = JSON.parse(items[k].SHAPE);
+                                    oSalesOrg.position = "";
+                                    if(shapeFeatures) {
+                                        shapeFeatures.coordinates.pop().forEach(function(coor){
+                                            let x = coor.pop();
+                                            let y = coor.pop();
+                                            oSalesOrg.position = oSalesOrg.position + y + ";" + x + ";0;";
+                                        });
+                                        oSalesOrg.position = oSalesOrg.position.substring(0, oSalesOrg.position.length - 1);
+                                    }
+                                }
+                            }
+                            
+                            sPath = sPath + "/ProductGroups/" + items[k].PRODUCT_GROUP;
+                            let oProductGroup = this.oSalesModelLocal.getProperty(sPath);
+                            if(!oProductGroup) {
+                                oProductGroup = { "PRODUCT_GROUP":items[k].PRODUCT_GROUP,
+                                                  "REVENUE":items[k].REVENUE,
+                                                  "CURRENCY":items[k].CURRENCY };
+                                this.oSalesModelLocal.setProperty(sPath,oProductGroup);
+                                
+                                oSalesOrg.REVENUE = parseFloat(oSalesOrg.REVENUE) + parseFloat(items[k].REVENUE);
+                                
+                            }
+                            
+                        }
+                    }
+                }
+                //TODO: remove log output
+                console.log(this.oSalesModelLocal.oData);
+            }
 
 	});
 

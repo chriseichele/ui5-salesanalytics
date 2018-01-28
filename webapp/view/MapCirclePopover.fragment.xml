@@ -2,7 +2,7 @@
 	xmlns="sap.m"
 	xmlns:core="sap.ui.core">
 	<ResponsivePopover
-		title="{sales>SALES_ORGANISATION}"
+		title="{sales2>tooltip}"
 		class="sapUiContentPadding"
 		placement="Bottom" >
 		<endButton>
@@ -11,15 +11,19 @@
 		<content>
 			<VBox class="sapUiTinyMargin">
 		        <Label text="{i18n>Period}" />
-			    <Text text="{path: 'sales>MONTH', formatter: '.formatter.month'} {sales>YEAR}" />
+			    <Text text="{path: 'sales2>MONTH', formatter: '.formatter.month'} {sales2>YEAR}" />
 			</VBox>
 			<VBox class="sapUiTinyMargin">
 		        <Label text="{i18n>Revenue}" />
-			    <Text text="{path: 'sales>REVENUE', type:'sap.ui.model.type.Float', formatOptions : {   groupingEnabled: true, minFractionDigits: 2} }" />
+			    <FormattedText htmlText="&lt;strong&gt;{path: 'sales2>REVENUE', type:'sap.ui.model.type.Float' } {sales2>CURRENCY}&lt;/strong&gt;" />
 			</VBox>
-			<VBox class="sapUiTinyMargin">
-		        <Label text="{i18n>SalesQuantity}" />
-			    <Text text="{path: 'sales>SALES_QUANTITY', type:'sap.ui.model.type.Float', formatOptions : {   groupingEnabled: true, minFractionDigits: 2} }" />
+			<VBox class="sapUiTinyMargin sapUiSmallMarginTop">
+		        <Label text="{i18n>RevenuePerItem}" />
+    			<List items="{sales2>ProductGroups}" >
+            		<StandardListItem class="noPadding"
+            			title="{sales2>PRODUCT_GROUP}"
+            			counter="{path: 'sales2>REVENUE', type:'sap.ui.model.type.Float' }"/>
+            	</List>
 			</VBox>
 		</content>
 	</ResponsivePopover>

@@ -2,9 +2,6 @@ service {
 
     /* #TODO: build xsodata service new based on michala's tables */
     
-    "GBI_006"."gbi-student-006::PRODUCT_ATTR_006" as "Products";
-    "GBI_006"."gbi-student-006::CUSTOMER_ATTR_006" as "Customers";
-    
     "gbi-student-006::SALES_CUBE_CV_006" as "Sales_old"
         // key generate local "ID" //generate new key
         key ("ORDER_NUMBER","ORDER_ITEM") //use existing (combined) key
@@ -23,13 +20,17 @@ service {
         key ("ORDER_NUMBER","ORDER_ITEM") 
         aggregates always; 
     
-    "gbi-student-006.SalesDataAnalytics.data::SALES_CUBE" as "SalesCube" 
-        with ("YEAR", "MONTH", "SALES_ORGANISATION", "SHAPE", "REVENUE","SALES_QUANTITY")
-        key ("YEAR", "MONTH", "SALES_ORGANISATION") 
+    "gbi-student-006.SalesDataAnalytics.data::SALES_CUBE" as "SalesMonthProductGroup" 
+        with ("YEAR", "MONTH", "SALES_ORGANISATION", "SHAPE", "PRODUCT_GROUP", "REVENUE","CURRENCY","SALES_QUANTITY")
+        key ("YEAR", "MONTH", "SALES_ORGANISATION", "PRODUCT_GROUP") 
         /* keys generate local "ID" */
         aggregates always (SUM of "SALES_QUANTITY", SUM of "REVENUE");
     
     "GBI_DEMO"."GBI_DEMO_SALESORG" as "SalesOrg";
+    
+    "gbi-student-006.SalesDataAnalytics.data::SALES_CUBE" as "ProductGroups"
+        with ("PRODUCT_GROUP")
+        key ("PRODUCT_GROUP");
     
     /*
     "GBI_DEMO"."GBI_DEMO_PRODUCT" as "Products";

@@ -21,7 +21,18 @@
       <viewAttribute id="INTERNAL_PRICE"/>
       <viewAttribute id="PRICE"/>
     </viewAttributes>
-    <calculatedViewAttributes/>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="Clean_Product_Group" datatype="VARCHAR" length="1" expressionLanguage="COLUMN_ENGINE">
+        <formula>if(isnull(&quot;PRODUCT_GROUP&quot;),'0',&quot;PRODUCT_GROUP&quot;)</formula>
+      </calculatedViewAttribute>
+    
+      <calculatedViewAttribute id="Clean_Category" datatype="VARCHAR" length="1" expressionLanguage="COLUMN_ENGINE">
+        <formula>if(isnull(&quot;PRODUCT_CATEGORY&quot;),'0',&quot;PRODUCT_CATEGORY&quot;)</formula>
+      </calculatedViewAttribute>
+      <calculatedViewAttribute id="Clean_Color" datatype="VARCHAR" length="1" expressionLanguage="COLUMN_ENGINE">
+        <formula>if(isnull(&quot;COLOR&quot;),'0',&quot;COLOR&quot;)</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
     <input node="#GBI_DEMO_PRODUCT">
       <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCT_ID" source="PRODUCT"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCT_NAME" source="PRODUCT_NAME"/>
@@ -48,25 +59,27 @@
       <descriptions defaultDescription="DIVISION"/>
       <keyMapping columnObjectName="Products" columnName="DIVISION"/>
     </attribute>
-    <attribute id="PRODUCT_CATEGORY" order="4" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="PRODUCT_CATEGORY"/>
-      <keyMapping columnObjectName="Products" columnName="PRODUCT_CATEGORY"/>
-    </attribute>
-    <attribute id="PRODUCT_GROUP" order="5" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="PRODUCT_GROUP"/>
-      <keyMapping columnObjectName="Products" columnName="PRODUCT_GROUP"/>
-    </attribute>
-    <attribute id="COLOR" order="6" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="COLOR"/>
-      <keyMapping columnObjectName="Products" columnName="COLOR"/>
-    </attribute>
-    <attribute id="INTERNAL_PRICE" order="7" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="INTERNAL_PRICE" order="4" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="INTERNAL_PRICE"/>
       <keyMapping columnObjectName="Products" columnName="INTERNAL_PRICE"/>
     </attribute>
-    <attribute id="PRICE" order="8" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="PRICE" order="5" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="PRICE"/>
       <keyMapping columnObjectName="Products" columnName="PRICE"/>
+    </attribute>
+  
+    <attribute id="PRODUCT_GROUP" order="6" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="PRODUCT_GROUP_Test"/>
+      <keyMapping columnObjectName="Products" columnName="Clean_Product_Group"/>
+    </attribute>
+  
+    <attribute id="PRODUCT_CATEGORY" order="7" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Clean_Category"/>
+      <keyMapping columnObjectName="Products" columnName="Clean_Category"/>
+    </attribute>
+    <attribute id="COLOR" order="8" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Clean_Color"/>
+      <keyMapping columnObjectName="Products" columnName="Clean_Color"/>
     </attribute>
   </attributes>
   <calculatedAttributes/>

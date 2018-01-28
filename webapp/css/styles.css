@@ -4,8 +4,12 @@
     display: none; 
 }
 
+.noPadding {
+    padding: 0 !important;
+}
+
 .sapFDynamicPageContent,
 .sapFDynamicPageContentFitContainer {
     /* no initial padding in dynamic page content */
-    padding: 0px !important;
+    padding: 0 !important;
 }

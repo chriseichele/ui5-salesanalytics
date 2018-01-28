@@ -13,7 +13,7 @@
 		        <Label text="{i18n>Period}" />
 			    <Text text="{path: 'sales2>MONTH', formatter: '.formatter.month'} {sales2>YEAR}" />
 			</VBox>
-			<VBox class="sapUiTinyMargin">
+			<VBox class="sapUiTinyMargin sapUiSmallMarginTop">
 		        <Label text="{i18n>Revenue}" />
 			    <FormattedText htmlText="&lt;strong&gt;{path: 'sales2>REVENUE', type:'sap.ui.model.type.Float' } {sales2>CURRENCY}&lt;/strong&gt;" />
 			</VBox>
@@ -21,7 +21,7 @@
 		        <Label text="{i18n>RevenuePerItem}" />
     			<List items="{sales2>ProductGroups}" >
             		<StandardListItem class="noPadding"
-            			title="{sales2>PRODUCT_GROUP}"
+            			title="{path: 'sales2>PRODUCT_GROUP', formatter: '.formatter.setEmptyText'}"
             			counter="{path: 'sales2>REVENUE', type:'sap.ui.model.type.Float' }"/>
             	</List>
 			</VBox>

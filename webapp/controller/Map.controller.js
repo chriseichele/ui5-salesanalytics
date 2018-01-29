@@ -605,11 +605,16 @@ sap.ui.define([
                                 /* read text */
                                 
                                 let sLangu = sap.ui.getCore().getConfiguration().getLanguage().toUpperCase().substring(0,1);
-                                this.oSalesModel.read("/SalesOrg(SALES_ORGANISATION='"+items[k].SALES_ORGANISATION+"',LANGU='"+sLangu+"')", 
-                                    {
-                                        success: function(oTooltipObject){ oSalesOrg.tooltip = oTooltipObject.SHORT_TEXT; }.bind(this)
-                                    }
-                                  );
+                                let sSalesOrgKey = "/SalesOrg(SALES_ORGANISATION='"+items[k].SALES_ORGANISATION+"',LANGU='"+sLangu+"')";
+                                if(this.oSalesModel.getProperty(sSalesOrgKey)) {
+                                    oSalesOrg.tooltip = this.oSalesModel.getProperty(sSalesOrgKey).SHORT_TEXT;
+                                } else {
+                                    this.oSalesModel.read(sSalesOrgKey, {
+                                            success: function(oTooltipObject){ 
+                                                oSalesOrg.tooltip = oTooltipObject.SHORT_TEXT; 
+                                            }.bind(this)
+                                    } );
+                                }
                                 
                                 /* create geo shape */
                                 if(items[k].SHAPE){

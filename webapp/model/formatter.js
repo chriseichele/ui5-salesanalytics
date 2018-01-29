@@ -30,22 +30,54 @@ sap.ui.define([], function() {
 		    }
 		},
 		
-		revenueColor: function(iRevenue) {
-		    
+		revenueColor: function(iRevenue, bPredicted) {
             let iRevenueMin = this.oModel.getProperty("/Legend/Revenue/Min");
-		    
 		    /* set color based on revenue */
             let iRevenueCurrentAboveMin = iRevenue - iRevenueMin;
             switch (true) {
               case (iRevenueCurrentAboveMin < this.oModel.getProperty("/Legend/Revenue/1")):
-                return this.oModel.getProperty("/Legend/Color/Now/1");
+                if(!bPredicted) {
+                    return this.oModel.getProperty("/Legend/Color/Now/1");
+                } else {
+                    return this.oModel.getProperty("/Legend/Color/Predicted/1");
+                }
+                break;
               case (iRevenueCurrentAboveMin < this.oModel.getProperty("/Legend/Revenue/2")):
-                return this.oModel.getProperty("/Legend/Color/Now/2");
+                if(!bPredicted) {
+                    return this.oModel.getProperty("/Legend/Color/Now/2");
+                } else {
+                    return this.oModel.getProperty("/Legend/Color/Predicted/2");
+                }
+                break;
               case (iRevenueCurrentAboveMin < this.oModel.getProperty("/Legend/Revenue/3")):
-                return this.oModel.getProperty("/Legend/Color/Now/3");
+                if(!bPredicted) {
+                    return this.oModel.getProperty("/Legend/Color/Now/3");
+                } else {
+                    return this.oModel.getProperty("/Legend/Color/Predicted/3");
+                }
+                break;
+              case (iRevenueCurrentAboveMin < this.oModel.getProperty("/Legend/Revenue/4")):
+                if(!bPredicted) {
+                    return this.oModel.getProperty("/Legend/Color/Now/4");
+                } else {
+                    return this.oModel.getProperty("/Legend/Color/Predicted/4");
+                }
+                break;
               default:
-                return this.oModel.getProperty("/Legend/Color/Now/4");
+                if(!bPredicted) {
+                    return this.oModel.getProperty("/Legend/Color/Now/4");
+                } else {
+                    return this.oModel.getProperty("/Legend/Color/Predicted/5");
+                }
             }
+		},
+		revenueColorNow: function(iRevenue) {
+		    let getRevenueColor = this.formatter.revenueColor.bind(this);
+		    return getRevenueColor(iRevenue, false);
+		},
+		revenueColorPredicted: function(iRevenue) {
+		    let getRevenueColor = this.formatter.revenueColor.bind(this);
+		    return getRevenueColor(iRevenue, true);
 		}
 	};
 

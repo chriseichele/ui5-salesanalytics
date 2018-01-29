@@ -112,7 +112,7 @@
 											<vbm:Areas id="mapAreasNow" items="{sales2>/SalesMonth}" >
 												<vbm:Area id="AreaNow" click="onClickCircle" 
 					                        		tooltip="{sales2>tooltip}" 
-					                        		color="{path: 'sales2>REVENUE', formatter: '.formatter.revenueColor' }"
+					                        		color="{path: 'sales2>REVENUE', formatter: '.formatter.revenueColorNow' }"
 					                        		colorBorder="rgba(180,180,180,0.9)"
 					                        		position="{sales2>position}" 
 					                        		key="{sales2>SALES_ORGANISATION}" 

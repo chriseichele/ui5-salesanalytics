@@ -641,8 +641,6 @@ sap.ui.define([
                         }
                     }
                 }
-                //TODO: remove log output
-                console.log(this.oSalesModelLocal.oData);
             }
 
 	});

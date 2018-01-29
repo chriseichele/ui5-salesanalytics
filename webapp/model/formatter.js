@@ -22,6 +22,14 @@ sap.ui.define([], function() {
 			return d.toLocaleString(locale, {month: "long"});
 		},
 		
+		setEmptyText: function(sText) {
+		    if(!sText || sText === "0") {
+		        return this.getResourceBundle().getText("unclassified");
+		    } else {
+		        return sText;
+		    }
+		},
+		
 		revenueColor: function(iRevenue) {
 		    
             let iRevenueMin = this.oModel.getProperty("/Legend/Revenue/Min");

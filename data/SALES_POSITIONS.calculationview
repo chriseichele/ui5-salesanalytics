@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="SALES_POSITIONS" applyPrivilegeType="ANALYTIC_PRIVILEGE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="2.3" defaultClient="$$client$$" visibility="internal" outputViewType="Projection" calculationScenarioType="TREE_BASED" enforceSqlExecution="false">
+<descriptions defaultDescription="SALES_POSITIONS"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="GBI_DEMO_SALES" type="DATA_BASE_TABLE">
+    <viewAttributes allViewAttributes="true"/>
+    <columnObject schemaName="GBI_DEMO" columnObjectName="GBI_DEMO_SALES"/>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="SalesPositions">
+    <viewAttributes>
+      <viewAttribute id="ORDER_NUMBER"/>
+      <viewAttribute id="ORDER_ITEM"/>
+      <viewAttribute id="YEAR"/>
+      <viewAttribute id="MONTH"/>
+      <viewAttribute id="DAY"/>
+      <viewAttribute id="UNIT_OF_MEASURE"/>
+      <viewAttribute id="SALES_QUANTITY"/>
+      <viewAttribute id="DISCOUNT"/>
+      <viewAttribute id="REVENUE"/>
+      <viewAttribute id="PRODUCT"/>
+      <viewAttribute id="CURRENCY"/>
+      <viewAttribute id="CUSTOMER_NUMBER"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="QUARTER" datatype="INTEGER" expressionLanguage="COLUMN_ENGINE">
+        <formula>&quot;MONTH&quot; / 4</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="#GBI_DEMO_SALES">
+      <mapping xsi:type="Calculation:AttributeMapping" target="ORDER_NUMBER" source="ORDER_NUMBER"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="ORDER_ITEM" source="ORDER_ITEM"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="YEAR" source="YEAR"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="MONTH" source="MONTH"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="DAY" source="DAY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="UNIT_OF_MEASURE" source="UNIT_OF_MEASURE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="SALES_QUANTITY" source="SALES_QUANTITY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="DISCOUNT" source="DISCOUNT"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="REVENUE" source="REVENUE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCT" source="PRODUCT"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CURRENCY" source="CURRENCY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CUSTOMER_NUMBER" source="CUSTOMER_NUMBER"/>
+    </input>
+  </calculationView>
+</calculationViews>
+<logicalModel id="SalesPositions">
+  <attributes>
+    <attribute id="ORDER_NUMBER" key="true" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="ORDER_NUMBER"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="ORDER_NUMBER"/>
+    </attribute>
+    <attribute id="ORDER_ITEM" key="true" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="ORDER_ITEM"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="ORDER_ITEM"/>
+    </attribute>
+    <attribute id="YEAR" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="YEAR"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="YEAR"/>
+    </attribute>
+    <attribute id="QUARTER" order="4" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="QUARTER"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="QUARTER"/>
+    </attribute>
+    <attribute id="MONTH" order="5" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="MONTH"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="MONTH"/>
+    </attribute>
+    <attribute id="DAY" order="6" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="DAY"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="DAY"/>
+    </attribute>
+    <attribute id="UNIT_OF_MEASURE" order="7" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="UNIT_OF_MEASURE"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="UNIT_OF_MEASURE"/>
+    </attribute>
+    <attribute id="SALES_QUANTITY" order="8" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="SALES_QUANTITY"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="SALES_QUANTITY"/>
+    </attribute>
+    <attribute id="DISCOUNT" order="9" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="DISCOUNT"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="DISCOUNT"/>
+    </attribute>
+    <attribute id="REVENUE" order="10" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="REVENUE"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="REVENUE"/>
+    </attribute>
+    <attribute id="PRODUCT" order="11" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="PRODUCT"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="PRODUCT"/>
+    </attribute>
+    <attribute id="CURRENCY" order="12" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CURRENCY"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="CURRENCY"/>
+    </attribute>
+    <attribute id="CUSTOMER_NUMBER" order="13" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CUSTOMER_NUMBER"/>
+      <keyMapping columnObjectName="SalesPositions" columnName="CUSTOMER_NUMBER"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="SalesPositions" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="91" y="234"/>
+      <rectangleSize height="30" width="140"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

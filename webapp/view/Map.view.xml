@@ -65,7 +65,7 @@
                                                 path: 'sales>/ProductGroups',
                                 				sorter: { path: 'PRODUCT_GROUP' }
                                 			}">
-										<core:Item key="{sales>PRODUCT_GROUP}" text="{sales>PRODUCT_GROUP}"/>
+										<core:Item key="{sales>PRODUCT_GROUP}" text="{path: 'sales>PRODUCT_GROUP', formatter: '.formatter.setEmptyText'}"/>
 									</MultiComboBox>
 								</fb:control>
 							</fb:FilterItem>

@@ -1,0 +1,12 @@
+<mvc:View
+   controllerName="de.tum.in.i17.leonardo.ws1718.salesanalytics.controller.NotFound"
+   xmlns="sap.m"
+   xmlns:mvc="sap.ui.core.mvc">
+   <MessagePage
+      title="{i18n>NotFound}"
+      text="{i18n>NotFound.text}"
+      description="{i18n>NotFound.description}"
+      showNavButton="{= ${hasMaster} }"
+	  navButtonPress="onNavBack"
+      />
+</mvc:View>

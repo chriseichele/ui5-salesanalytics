@@ -1,0 +1,20 @@
+/**
+* Copyright (c) 2012-2016 SAP SE, All Rights Reserved
+*
+* Theming Engine 1.30.8
+* data:{"Path": "Base.baseLib.tum.preview", "PathPattern": "/%frameworkId%/%libId%/%themeId%/%fileId%.css", "IECssRuleLimitFiles": [], "Extends": ["sap_belize","sap_bluecrystal","sap_goldreflection","baseTheme"], "Tags": ["Fiori_2"], "Version": { "Build":"11.0.3.20180130002048", "Source": "11.0.3", "Engine": "1.30.8"}}
+*/
+
+.sapThemeMetaData-Base-baseLib{background-image: url('data:text/plain;utf-8,{"Path": "Base.baseLib.tum.preview", "PathPattern": "/%frameworkId%/%libId%/%themeId%/%fileId%.css", "IECssRuleLimitFiles": [], "Extends": ["sap_belize","sap_bluecrystal","sap_goldreflection","baseTheme"], "Tags": ["Fiori_2"], "Version": { "Build":"11.0.3.20180130002048", "Source": "11.0.3", "Engine": "1.30.8"}}');}
+
+/*Base.baseLib.baseTheme.base*/.sapSvgLibs{background-image:none,url('../../../Base/baseLib/sap_belize/svg-RTL/libs/SAPGUI-icons.svg'),url('../../../Base/baseLib/sap_belize/svg-RTL/libs/SAPWeb-icons.svg')}.sapSvgIconPositive{fill:#2b7d2b!important}.sapSvgIconCritical{fill:#e78c07!important}.sapSvgIconNegative{fill:#bb0000!important}
+/*Base.baseLib.baseTheme.preview*/
+/*Base.baseLib.sap_goldreflection.base*/
+/*Base.baseLib.sap_goldreflection.preview*/
+/*Base.baseLib.sap_bluecrystal.base*/
+/*Base.baseLib.sap_bluecrystal.preview*/
+/*Base.baseLib.sap_belize.base*/
+/*Base.baseLib.sap_belize.preview*/
+/*Base.baseLib.tum.custom*/
+/*Base.baseLib.tum.base*/
+/*Base.baseLib.tum.preview*/

@@ -1,0 +1,1 @@
+{"authenticationMethod":"none","routes":[{"path":"/UI5","target":{"type":"service","name":"sapui5","version":"1.50.8","preferLocal":true,"entryPath":"/resources"},"description":"SAPUI5 Resources"}]}

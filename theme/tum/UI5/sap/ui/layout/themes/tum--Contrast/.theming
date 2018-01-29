@@ -1,0 +1,15 @@
+{
+	"mVersionDependency": {
+		"UI5.sap/ui/layout.sap_belize_plus": "1.50.7",
+		"UI5.sap/ui/layout": "1.50.7",
+		"UI5": "1.50.8"
+	},
+	"sEntity": "Theme",
+	"sId": "tum--Contrast",
+	"oExtends": "UI5.sap/ui/layout.sap_belize_plus",
+	"aBundled": [
+		"tum"
+	],
+	"sType": "ABSTRACT",
+	"sThemability": "PRIVATE"
+}

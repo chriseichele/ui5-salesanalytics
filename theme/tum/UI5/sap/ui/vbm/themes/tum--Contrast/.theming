@@ -1,0 +1,16 @@
+{
+	"mVersionDependency": {
+		"UI5.sap/ui/vbm.sap_belize_plus": "1.50.6",
+		"UI5.sap/ui/vbm": "1.50.6",
+		"UI5": "1.50.8"
+	},
+	"sEntity": "Theme",
+	"sId": "tum--Contrast",
+	"oExtends": "UI5.sap/ui/vbm.sap_belize_plus",
+	"aBundled": [
+		"tum"
+	],
+	"sBuildOptions": "SKIP",
+	"sType": "ABSTRACT",
+	"sThemability": "PRIVATE"
+}

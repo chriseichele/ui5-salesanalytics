@@ -1,0 +1,37 @@
+{
+	"mVersionDependency": {
+		"UI5.sap/ui/table.sap_belize": "1.50.7",
+		"UI5.sap/ui/table": "1.50.7",
+		"UI5": "1.50.8"
+	},
+	"sEntity": "Theme",
+	"sId": "tum",
+	"sLabel": "TUM",
+	"oExtends": "UI5.sap/ui/table.sap_belize",
+	"aBundled": [
+		"tum--Contrast"
+	],
+	"sTextDirections": "LTR,RTL",
+	"sType": "STANDARD",
+	"sThemability": "PUBLIC",
+	"mCssScopes": {
+		"library": {
+			"sEmbeddingMethod": "APPEND",
+			"aScopes": [
+				{
+					"sLabel": "Contrast",
+					"sSelector": "sapContrast",
+					"sThemeIdSuffix": "Contrast",
+					"sThemability": "PUBLIC",
+					"aThemabilityFilter": [
+						"Color"
+					],
+					"rExcludeSelector": "\\.sapContrastPlus\\W",
+					"sEmbeddedFile": "tum--Contrast.library",
+					"sEmbeddedCompareFile": "library"
+				}
+			],
+			"sBaseFile": "library"
+		}
+	}
+}

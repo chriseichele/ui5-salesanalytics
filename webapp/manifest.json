@@ -124,7 +124,7 @@
                     "target": "map"
 				},
                 {
-                    "pattern": "predict/:chartType:",
+                    "pattern": "predict:chartType:/:salesOrg:/:productGroups:",
                     "name": "predict",
                     "target": "predict"
 				},

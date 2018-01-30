@@ -10,6 +10,8 @@ sap.ui.define([
         
         formatter: formatter,
         
+        sLANGU: sap.ui.getCore().getConfiguration().getLanguage().toUpperCase().substring(0,1),
+        
         /**
          * Convenience method for accessing the router in every controller of the application.
          * @public

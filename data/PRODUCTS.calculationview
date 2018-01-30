@@ -27,10 +27,16 @@
       </calculatedViewAttribute>
     
       <calculatedViewAttribute id="Clean_Category" datatype="VARCHAR" length="1" expressionLanguage="COLUMN_ENGINE">
+    
         <formula>if(isnull(&quot;PRODUCT_CATEGORY&quot;),'0',&quot;PRODUCT_CATEGORY&quot;)</formula>
+    
       </calculatedViewAttribute>
       <calculatedViewAttribute id="Clean_Color" datatype="VARCHAR" length="1" expressionLanguage="COLUMN_ENGINE">
         <formula>if(isnull(&quot;COLOR&quot;),'0',&quot;COLOR&quot;)</formula>
+      </calculatedViewAttribute>
+    
+      <calculatedViewAttribute id="PRODUCT_GROUP_MAPPED" datatype="VARCHAR" length="1" expressionLanguage="COLUMN_ENGINE">
+        <formula>case(&quot;PRODUCT_GROUP&quot;,'Campa Record',1,'Shimano Dura Ace',2,'Shimano Road',3,'Shimano Ultegra',4,'Shimano XT',5,'SRAM Force',6,'SRAM Red',7,'SRAM X9',8,'SRAM XO',9,0)</formula>
       </calculatedViewAttribute>
     </calculatedViewAttributes>
     <input node="#GBI_DEMO_PRODUCT">
@@ -81,6 +87,11 @@
       <descriptions defaultDescription="Clean_Color"/>
       <keyMapping columnObjectName="Products" columnName="Clean_Color"/>
     </attribute>
+  
+    <attribute id="PRODUCT_GROUP_MAPPED" order="9" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="PRODUCT_GROUP_MAPPED"/>
+      <keyMapping columnObjectName="Products" columnName="PRODUCT_GROUP_MAPPED"/>
+    </attribute>
   </attributes>
   <calculatedAttributes/>
   <baseMeasures/>
@@ -99,4 +110,4 @@
     </shape>
   </shapes>
 </layout>
-</Calculation:scenario>
+</Calculation:scenario> 

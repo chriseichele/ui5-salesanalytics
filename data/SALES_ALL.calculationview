@@ -269,30 +269,28 @@
   
       <keyCalculation datatype="INTEGER" expressionLanguage="COLUMN_ENGINE">
   
-        <formula>case(&quot;PROD_STRING&quot;,'RACA1110',1,'PRTR2100',1,'ORMN1100',1,'DXTR2100',1,'RAAL1110',1,'ORHT1120',1,'ORHT1110',2,'PRTR1100',2,'ORWN1100',2,'PRTR3100',2,'DXTR3100',2,'DXTR1100',2,'RACA1130',2,'RACA1120',2,'RAAL1120',2,'EBIK1100',2,'PUMP1000',3,'CIMA1100',3,'FAID1000',3,'CAGE1000',3,'RHMT1000',3,'OHMT1000',3,'RKIT1000',4,'KPAD1000',4,'EPAD1000',4,'SHRT1000',4,'FIXI1100',4,'BOTL1000',4,5)</formula>
+        <formula>case(string(&quot;PRODUCT_NAME&quot;),'RACA1110',1,'PRTR2100',1,'ORMN1100',1,'DXTR2100',1,'RAAL1110',1,'ORHT1120',1,'ORHT1110',2,'PRTR1100',2,'ORWN1100',2,'PRTR3100',2,'DXTR3100',2,'DXTR1100',2,'RACA1130',2,'RACA1120',2,'RAAL1120',2,'EBIK1100',2,'PUMP1000',3,'CIMA1100',3,'FAID1000',3,'CAGE1000',3,'RHMT1000',3,'OHMT1000',3,'RKIT1000',4,'KPAD1000',4,'EPAD1000',4,'SHRT1000',4,'FIXI1100',4,'BOTL1000',4,5)</formula>
   
       </keyCalculation>
   
     </calculatedAttribute>
-    <calculatedAttribute id="PRODUCT_TO_GROUP" order="31" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false" hidden="false">
-      <descriptions defaultDescription="PRODUCT_TO_NR"/>
+    <calculatedAttribute id="PRODUCT_GROUP_MAPPED" order="31" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false" hidden="false">
+      <descriptions defaultDescription="PRODUCT_TO_GROUP"/>
       <keyCalculation datatype="INTEGER" expressionLanguage="COLUMN_ENGINE">
         <formula>case(&quot;PRODUCT_GROUP&quot;,'Campa Record',1,'Shimano Dura Ace',2,'Shimano Road',3,'Shimano Ultegra',4,'Shimano XT',5,'SRAM Force',6,'SRAM Red',7,'SRAM X9',8,'SRAM XO',9,0)
 </formula>
       </keyCalculation>
     </calculatedAttribute>
-    <calculatedAttribute id="PROD_STRING" order="32" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false" hidden="false">
-      <descriptions defaultDescription="PROD_STRING"/>
-      <keyCalculation datatype="VARCHAR" length="1" expressionLanguage="COLUMN_ENGINE">
-        <formula>string(&quot;PRODUCT_ID&quot;)</formula>
-      </keyCalculation>
-    </calculatedAttribute>
   
-    <calculatedAttribute id="SALESORG_TO_NR" order="33" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+    <calculatedAttribute id="SALES_ORG_MAPPED" order="32" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false" hidden="false">
       <descriptions defaultDescription="SALESORG_TO_NR"/>
+  
       <keyCalculation datatype="INTEGER" expressionLanguage="COLUMN_ENGINE">
+  
         <formula>case(&quot;SALES_ORGANISATION&quot;,'DS00',1,'DN00',2,'UE00',3,'UW00',4,0)</formula>
+  
       </keyCalculation>
+  
     </calculatedAttribute>
   </calculatedAttributes>
   <baseMeasures/>

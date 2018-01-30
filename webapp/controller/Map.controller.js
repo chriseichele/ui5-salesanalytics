@@ -1,13 +1,9 @@
 /*global history */
 sap.ui.define([
 	    "de/tum/in/i17/leonardo/ws1718/salesanalytics/controller/BaseController",
-        "sap/ui/vbm/AnalyticMap",
         "sap/ui/model/json/JSONModel"
-    ], function(BaseController, AnalyticMap, JSONModel) {
+    ], function(BaseController, JSONModel) {
 	"use strict";
-
-	//AnalyticMap.GeoJSONURL = "https://sapui5.netweaver.ondemand.com/1.50.8/test-resources/sap/ui/vbm/demokit/media/analyticmap/L0.json";
-	AnalyticMap.GeoJSONURL = "/gbi-student-006/SalesDataAnalytics/model/requestSalesOrg.xsjs";
 
 	return BaseController.extend("de.tum.in.i17.leonardo.ws1718.salesanalytics.controller.Map", {
 
@@ -58,7 +54,7 @@ sap.ui.define([
 		    
 		    /* filter select on language */
 			this.oSelectSalesOrg.getBinding("items").filter(
-			    new sap.ui.model.Filter("LANGU", sap.ui.model.FilterOperator.EQ, sap.ui.getCore().getConfiguration().getLanguage().toUpperCase().substring(0,1), sap.ui.model.FilterType.Application));
+			    new sap.ui.model.Filter("LANGU", sap.ui.model.FilterOperator.EQ, this.sLANGU, sap.ui.model.FilterType.Application));
 		    
 		    /* watch map layer change */
 		    let domCurrentMapLayer = document.getElementsByClassName("mapLayerSelectedText")[0];
@@ -347,8 +343,23 @@ sap.ui.define([
 
 		/* Navigation */
 
-		gotoPredict: function() {
+		gotoPredict: function(oEvent) {
+		    let sSalesOrg = oEvent.getSource().data("salesorg");
+		    let iYear = this.oModel.getProperty("/DateStart").getFullYear();
+		    let iMonth = this.oModel.getProperty("/DateStart").getMonth() + 1;
+		    let oSalesOrg = this.oSalesModelLocal.getProperty("/SalesMonth/" + sSalesOrg + "_" + iYear + "_" + iMonth);
+		    
+		    let sProductGroups = "";
+		    Object.keys(oSalesOrg.ProductGroups).forEach(function(key) {
+		        sProductGroups = sProductGroups + key + ",";
+            });
+            sProductGroups = sProductGroups.slice(0, -1);
+            
 			this.getRouter().navTo("predict");
+			this.getRouter().navTo("predict", { 
+				salesOrg : sSalesOrg,
+				productGroups : sProductGroups
+			}, true);
 		},
 
 		/* =========================================================== */
@@ -603,18 +614,7 @@ sap.ui.define([
                                 this.oSalesModelLocal.setProperty(sPath,oSalesOrg);
                                 
                                 /* read text */
-                                
-                                let sLangu = sap.ui.getCore().getConfiguration().getLanguage().toUpperCase().substring(0,1);
-                                let sSalesOrgKey = "/SalesOrg(SALES_ORGANISATION='"+items[k].SALES_ORGANISATION+"',LANGU='"+sLangu+"')";
-                                if(this.oSalesModel.getProperty(sSalesOrgKey)) {
-                                    oSalesOrg.tooltip = this.oSalesModel.getProperty(sSalesOrgKey).SHORT_TEXT;
-                                } else {
-                                    this.oSalesModel.read(sSalesOrgKey, {
-                                            success: function(oTooltipObject){ 
-                                                oSalesOrg.tooltip = oTooltipObject.SHORT_TEXT; 
-                                            }.bind(this)
-                                    } );
-                                }
+                                this.getSalesOrgText(items[k].SALES_ORGANISATION, function(s){oSalesOrg.tooltip = s;});
                                 
                                 /* create geo shape */
                                 if(items[k].SHAPE){

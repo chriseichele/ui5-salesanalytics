@@ -2,13 +2,15 @@
 sap.ui.define([
 		"sap/ui/core/mvc/Controller",
 		"sap/ui/core/routing/History",
-		"de/tum/in/i17/leonardo/ws1718/salesanalytics/model/formatter"
-	], function (Controller, History, formatter) {
+		"de/tum/in/i17/leonardo/ws1718/salesanalytics/model/formatter",
+		"de/tum/in/i17/leonardo/ws1718/salesanalytics/model/grouper"
+	], function (Controller, History, formatter, grouper) {
     "use strict";
 
     return Controller.extend("de.tum.in.i17.leonardo.ws1718.salesanalytics.controller.BaseController", {
         
         formatter: formatter,
+        grouper: grouper,
         
         sLANGU: sap.ui.getCore().getConfiguration().getLanguage().toUpperCase().substring(0,1),
         
@@ -67,6 +69,20 @@ sap.ui.define([
                 // Otherwise we go backwards with a forward history
                 var bReplace = true;
                 this.getRouter().navTo("default", {}, bReplace);
+            }
+        },
+        
+        getSalesOrgText: function(sSalesOrg, callback) {
+            let sSalesOrgKey = "/SalesOrg(SALES_ORGANISATION='"+sSalesOrg+"',LANGU='"+this.sLANGU+"')";
+            let oSalesModel = this.getModel("sales");
+            if(oSalesModel.getProperty(sSalesOrgKey)) {
+                callback(oSalesModel.getProperty(sSalesOrgKey).SHORT_TEXT);
+            } else {
+                oSalesModel.read(sSalesOrgKey, {
+                        success: function(oTooltipObject){ 
+                            callback(oTooltipObject.SHORT_TEXT); 
+                        }.bind(this)
+                } );
             }
         }
 

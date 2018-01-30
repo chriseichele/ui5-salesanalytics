@@ -1,12 +1,13 @@
 <core:FragmentDefinition
 	xmlns="sap.m"
-	xmlns:core="sap.ui.core">
+	xmlns:core="sap.ui.core"
+	xmlns:data="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1">
 	<ResponsivePopover
 		title="{sales2>tooltip}"
 		class="sapUiContentPadding"
 		placement="Bottom" >
 		<endButton>
-			<Button text="{i18n>gotoPredict}" tooltip="{i18n>gotoPredictTooltip}" icon="sap-icon://business-objects-experience" press="gotoPredict" />
+			<Button text="{i18n>gotoPredict}" tooltip="{i18n>gotoPredictTooltip}" icon="sap-icon://business-objects-experience" press="gotoPredict" data:salesorg="{sales2>SALES_ORGANISATION}" />
 		</endButton>
 		<content>
 			<VBox class="sapUiTinyMargin">

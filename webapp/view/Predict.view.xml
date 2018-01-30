@@ -8,26 +8,62 @@
 	xmlns:viz="sap.viz.ui5.controls"
 	xmlns:smartchart="sap.ui.comp.smartchart"
 	xmlns:footerbar="sap.ushell.ui.footerbar"
+	xmlns:data="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
 	xmlns:custom="de.tum.in.i17.leonardo.ws1718.salesanalytics.controls">
 	
 	<SplitContainer id="SplitView" initialDetail="detail" initialMaster="master">
 		<masterPages>
-        	<Page id="master" title="{i18n>productListCurrent}">
+        	<Page id="master" title="{i18n>settings}">
         		<headerContent>
         			<Button icon="sap-icon://navigation-right-arrow" press="onNavToDetail" visible="{= !!${device>/system/phone} }" />
         		</headerContent>
         	    <content>
-        	        <List id="ProductList" mode="SingleSelect" includeItemInSelection="true" noDataText="{i18n>productListEmpty}" >
-                        <StandardListItem icon="sap-icon://product" id="p1" title="Product A" description="Product description" />
-                        <StandardListItem icon="sap-icon://product" id="p2" title="Product B" description="Product description" />
-                        <StandardListItem icon="sap-icon://product" id="p3" title="Product C" description="Product description" />
-                    </List>
+				    <custom:Panel headerText="{i18n>timeframe}" expandable="true" expanded="{= !${device>/system/phone} }" >
+				        <custom:content>
+				            <VBox class="sapUiSmallMarginBottom">
+				                <Label text="{i18n>labelDateNow}" labelFor="DateRangeNow"/>
+					            <DateRangeSelection
+                        			id="DateRangeNow"
+                        			dateValue="{path:'/dateStart'}"
+                        			secondDateValue="{path:'/dateEnd'}"
+                        			minDate="{path:'/dateMin'}"
+                        			maxDate="{path:'/dateMax'}"
+                        			displayFormat="MMM yyy"
+                        			change="handleChange"
+                        		/>
+                                <Label text="{i18n>labelDatePredict}" labelFor="DateRangeFuture" class="sapUiSmallMarginTop" />
+					            <DateRangeSelection
+                        			id="DateRangeFuture"
+                        			dateValue="{path:'/dateStart'}"
+                        			secondDateValue="{path:'/dateEnd'}"
+                        			minDate="{path:'/dateMin'}"
+                        			maxDate="{path:'/dateMax'}"
+                        			displayFormat="MMM yyy"
+                        			change="handleChange"
+                        		/>
+					        </VBox>
+                        </custom:content>
+                    </custom:Panel>
+				    <custom:Panel headerText="{i18n>productListCurrent}" expandable="true" expanded="{= !${device>/system/phone} }"
+				     class="sapUiNoContentPadding" >
+				        <custom:content>
+                	        <List id="ProductList" 
+                	            mode="Delete"
+                	            delete="onDeleteSelectedListItem" 
+                	            noDataText="{i18n>productListEmpty}" 
+                	            items="{ path:'/ProductGroupList', 
+                	                     sorter: [ 
+                	                        { path: 'salesOrg', descending: false, group: true }, 
+                	                        { path: 'key' } ], 
+                	                     groupHeaderFactory: '.grouper.getProductListGroup'}">
+                                <StandardListItem icon="sap-icon://product" data:key="{key}" data:salesorg="{salesOrg}" title="{path: 'key', formatter: '.formatter.setEmptyText'}" />
+                            </List>
+                        </custom:content>
+                    </custom:Panel>
         	    </content>
         	    <footer>
         			<OverflowToolbar>
             		    <Button type="Accept" icon="sap-icon://add" text="{i18n>new}" class="sapUiTinyMarginBegin" press="onAddNewListItemDialog" />
-				        <ToolbarSpacer/>
-            			<Button type="Reject" icon="sap-icon://delete" text="{i18n>delete}" class="sapUiTinyMarginEnd" press="onDeleteSelectedListItem" />
         			</OverflowToolbar>
         		</footer>
 		    </Page>

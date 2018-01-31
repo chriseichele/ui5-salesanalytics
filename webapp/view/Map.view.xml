@@ -28,6 +28,7 @@
 						<dependents>
 							<ActionSheet id="shareSheet" showCancelButton="true" placement="Bottom">
 								<buttons>
+    								<Button id="shareNative" icon="sap-icon://share-2" text="{i18n>shareNative}" press="onShareNativePress" visible="{path:'', formatter:'.formatter.canShareNative'}" />
 									<Button id="shareEmail" icon="sap-icon://email" text="{i18n>shareSendEmail}" press="onShareEmailPress"/>
 									<Button id="shareInJam" icon="sap-icon://jam" text="{i18n>shareOnJamTitle}" press="onShareInJamPress" visible="{FLP>/isShareInJamActive}"/>
 									<footerbar:AddBookmarkButton id="shareTile" appData="{ path: '/pageTitle', formatter: '.formatter.shareTileData' }"/>

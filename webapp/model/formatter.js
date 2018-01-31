@@ -15,6 +15,10 @@ sap.ui.define([], function() {
 			};
 		},
 		
+		canShareNative: function() {
+		    return !!navigator && !!navigator.share;
+		},
+		
 		month: function(iMonth) {
 		    let locale = sap.ui.getCore().getConfiguration().getLanguage();
 		    let d = new Date();

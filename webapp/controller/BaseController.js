@@ -71,9 +71,47 @@ sap.ui.define([
                 this.getRouter().navTo("default", {}, bReplace);
             }
         },
+		
+		onSharePress: function() {
+			let oShareSheet = this.byId("shareSheet");
+			oShareSheet.addStyleClass(this.getOwnerComponent().getContentDensityClass());
+			oShareSheet.openBy(this.byId("shareButton"));
+		},
+		
+		onShareNativePress: function() {
+		    if (navigator.share) {
+                navigator.share({
+                    title: "",
+                    text: "",
+                    url: window.location.href
+                });
+            }
+		},
+		onShareEmailPress: function() {
+		    let sSubject = this.oModel.getProperty("/shareSendEmailSubject");
+		    let sMessage = this.oModel.getProperty("/shareSendEmailMessage");
+		    if(!sMessage){sMessage = window.location.href;}
+			sap.m.URLHelper.triggerEmail(
+				null,
+				sSubject,
+				sMessage
+			);
+		},
+		onShareInJamPress: function() {
+			let oShareDialog = sap.ui.getCore().createComponent({
+				name: "sap.collaboration.components.fiori.sharing.dialog",
+				settings: {
+					object: {
+						id: location.href,
+						share: this.oModel.getProperty("/shareOnJamTitle")
+					}
+				}
+			});
+			oShareDialog.open();
+		},
         
         getSalesOrgText: function(sSalesOrg, callback) {
-            let sSalesOrgKey = "/SalesOrg(SALES_ORGANISATION='"+sSalesOrg+"',LANGU='"+this.sLANGU+"')";
+            let sSalesOrgKey = "/SalesOrg(SALES_ORGANISATION='" + sSalesOrg + "',LANGU='" + this.sLANGU + "')";
             let oSalesModel = this.getModel("sales");
             if(oSalesModel.getProperty(sSalesOrgKey)) {
                 callback(oSalesModel.getProperty(sSalesOrgKey).SHORT_TEXT);

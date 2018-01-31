@@ -14,7 +14,6 @@ sap.ui.define([
 		onInit: function() {
             this.oModel = new JSONModel();
 			this.oModel.setData({"pageTitle": this.getResourceBundle().getText("predictViewTitle")});
-			this.oModel.setProperty("/ProductGroupList",{});
             this.setModel(this.oModel);
             
 		    this.oIconTabBarCharts = this.getView().byId("IconTabBarChartTypes");
@@ -45,6 +44,13 @@ sap.ui.define([
 		    this.configureChart();
 		    
 		},
+
+		onExit : function () {
+			if (this._oAddNewListItemDialog) {
+				this._oAddNewListItemDialog.destroy();
+			}
+			this.oModel = null;
+		},
 		
 		_onNavBack: function() {
 		    this.oSplitView.backMaster();
@@ -52,16 +58,41 @@ sap.ui.define([
         },
 		
 		_onObjectMatched: function (oEvent) {
-		    let sKey = oEvent.getParameter("arguments").chartType;
+		    this.oRouteArguments = oEvent.getParameter("arguments");
+		    let sKey = this.oRouteArguments.chartType;
 		    this.oIconTabBarCharts.setSelectedKey(sKey);
             this.oVizFrame.setVizType(this.oIconTabBarCharts.getSelectedKey());
             
-            let sSalesOrg = oEvent.getParameter("arguments").salesOrg;
-            let sProductGroups = oEvent.getParameter("arguments").productGroups;
-            if (sSalesOrg && sProductGroups) {
+            let iYearStart1 = parseInt(this.oRouteArguments.yearStart1, 10);
+            let iMonthStart1 = parseInt(this.oRouteArguments.monthStart1, 10) - 1;
+            let iYearEnd1 = parseInt(this.oRouteArguments.yearEnd1, 10);
+            let iMonthEnd1 = parseInt(this.oRouteArguments.monthEnd1, 10) - 1;
+            let iYearStart2 = parseInt(this.oRouteArguments.yearStart2, 10);
+            let iMonthStart2 = parseInt(this.oRouteArguments.monthStart2, 10) - 1;
+            let iYearEnd2 = parseInt(this.oRouteArguments.yearEnd2, 10);
+            let iMonthEnd2 = parseInt(this.oRouteArguments.monthEnd2, 10) - 1;
+            if(iYearStart1) {
+                this.oModel.setProperty("/dateStart1",new Date(Date.UTC(iYearStart1, iMonthStart1, 1)));
+            }
+            if(iYearStart2) {
+                this.oModel.setProperty("/dateStart2",new Date(Date.UTC(iYearStart2, iMonthStart2, 1)));
+            }
+            if(iYearEnd1) {
+                this.oModel.setProperty("/dateEnd1",new Date(Date.UTC(iYearEnd1, iMonthEnd1, 1)));
+            }
+            if(iYearEnd2) {
+                this.oModel.setProperty("/dateEnd2",new Date(Date.UTC(iYearEnd2, iMonthEnd2, 1)));
+            }
+            
+            let sProductGroups = this.oRouteArguments.productGroups;
+            if (sProductGroups) {
                 let aProductGroups = sProductGroups.split(",");
-                aProductGroups.forEach(function(sProdGroup) {
-                    this.oModel.setProperty("/ProductGroupList/" + sProdGroup + "_" + sSalesOrg,{
+			    this.oModel.setProperty("/ProductGroupList",{});
+                aProductGroups.forEach(function(sProdGroupSalesOrg) {
+                    let aKeys = sProdGroupSalesOrg.split("_");
+                    let sProdGroup = aKeys[0];
+                    let sSalesOrg = aKeys[1];
+                    this.oModel.setProperty("/ProductGroupList/" + sProdGroupSalesOrg,{
                         key: sProdGroup,
                         salesOrg: sSalesOrg
                     });
@@ -69,12 +100,35 @@ sap.ui.define([
             }
 		},
 		
-		_onTabSelect: function (oEvent, oElement) {
+		_onTabSelect: function (oEvent) {
+		    this.oRouteArguments.chartType = oEvent.getParameter("key");
 			if(oEvent.getParameter("key")) {
-				this.getRouter().navTo("predict", { 
-					chartType : oEvent.getParameter("key") 
-				}, true);
+				this.getRouter().navTo("predict", this.oRouteArguments, true);
 			}
+		},
+		
+		onDate1Select: function(oEvent) {
+		    if(oEvent.getParameter("from")) {
+		        this.oRouteArguments.yearStart1 = oEvent.getParameter("from").getFullYear();
+		        this.oRouteArguments.monthStart1 = oEvent.getParameter("from").getMonth() + 1;
+		    }
+		    if(oEvent.getParameter("to")) {
+		        this.oRouteArguments.yearEnd1 = oEvent.getParameter("to").getFullYear();
+		        this.oRouteArguments.monthEnd1 = oEvent.getParameter("to").getMonth() + 1;
+		    }
+			this.getRouter().navTo("predict", this.oRouteArguments, true);
+		},
+		
+		onDate2Select: function(oEvent) {
+		    if(oEvent.getParameter("from")) {
+		        this.oRouteArguments.yearStart2 = oEvent.getParameter("from").getFullYear();
+		        this.oRouteArguments.monthStart2 = oEvent.getParameter("from").getMonth() + 1;
+		    }
+		    if(oEvent.getParameter("to")) {
+		        this.oRouteArguments.yearEnd2 = oEvent.getParameter("to").getFullYear();
+		        this.oRouteArguments.monthEnd2 = oEvent.getParameter("to").getMonth() + 1;
+		    }
+			this.getRouter().navTo("predict", this.oRouteArguments, true);
 		},
 		
 		configureChart: function() {
@@ -156,35 +210,6 @@ sap.ui.define([
 		
 		onNavToDetail: function() {
 		    this.oSplitView.toDetail(this.getView().byId("detail"));
-		},
-		
-		onSharePress: function() {
-			let oShareSheet = this.byId("shareSheet");
-			oShareSheet.addStyleClass(this.getOwnerComponent().getContentDensityClass());
-			oShareSheet.openBy(this.byId("shareButton"));
-		},
-		
-		onShareEmailPress: function() {
-		    let sSubject = this.oModel.getProperty("/shareSendEmailSubject");
-		    let sMessage = this.oModel.getProperty("/shareSendEmailMessage");
-		    if(!sMessage){sMessage = window.location.href;}
-			sap.m.URLHelper.triggerEmail(
-				null,
-				sSubject,
-				sMessage
-			);
-		},
-		onShareInJamPress: function() {
-			let oShareDialog = sap.ui.getCore().createComponent({
-				name: "sap.collaboration.components.fiori.sharing.dialog",
-				settings: {
-					object: {
-						id: location.href,
-						share: this.oModel.getProperty("/shareOnJamTitle")
-					}
-				}
-			});
-			oShareDialog.open();
 		},
 		
 		onToggleSettings: function() {
@@ -285,7 +310,8 @@ sap.ui.define([
 							    if(!bValidationError) {
 							        let sProdGroup = oSelectProductGroup.getSelectedItem().getKey();
 							        let sSalesOrg = oSelectSalesOrg.getSelectedItem().getKey();
-							        let sPath = "/ProductGroupList/" + sProdGroup + "_" + sSalesOrg;
+							        let sProdGroupKey = sProdGroup + "_" + sSalesOrg;
+							        let sPath = "/ProductGroupList/" + sProdGroupKey;
 							        if(this.oModel.getProperty(sPath)) {
                 						sap.m.MessageToast.show(this.getResourceBundle().getText("itemAlreadyExists"));
 							        } else {
@@ -293,6 +319,7 @@ sap.ui.define([
                                             key: sProdGroup,
                                             salesOrg: sSalesOrg
                                         });
+                                        this.addRouteProdGroupKey(sProdGroupKey);
                 						sap.m.MessageToast.show(this.getResourceBundle().getText("itemAdded"));
         								this._oAddNewListItemDialog.close();
         								//cleanupInputs();
@@ -373,6 +400,7 @@ sap.ui.define([
 			            // send a delete request to the odata service
 			            let oGroups = this.oModel.getProperty("/ProductGroupList");
 			            delete oGroups[sId];
+			            this.removeRouteProdGroupKey(sId);
 			            this.oModel.refresh();
 						sap.m.MessageToast.show(this.getResourceBundle().getText("deletedSuccessfully"));
 						oDialog.close();
@@ -390,6 +418,17 @@ sap.ui.define([
 				}
 			});
 			oDialog.open();
+		},
+		
+		addRouteProdGroupKey: function(sKey) {
+		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups + "," + sKey;
+			this.getRouter().navTo("predict", this.oRouteArguments, true);
+		},
+		
+		removeRouteProdGroupKey: function(sKey) {
+		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace(sKey + ",", '');
+		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace("," + sKey, '');
+			this.getRouter().navTo("predict", this.oRouteArguments, true);
 		}
 
 	});

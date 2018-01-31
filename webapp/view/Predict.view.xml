@@ -18,33 +18,29 @@
         			<Button icon="sap-icon://navigation-right-arrow" press="onNavToDetail" visible="{= !!${device>/system/phone} }" />
         		</headerContent>
         	    <content>
-				    <custom:Panel headerText="{i18n>timeframe}" expandable="true" expanded="{= !${device>/system/phone} }" >
+				    <custom:Panel headerText="{i18n>timeframe}" expandable="true" expanded="true" >
 				        <custom:content>
 				            <VBox class="sapUiSmallMarginBottom">
 				                <Label text="{i18n>labelDateNow}" labelFor="DateRangeNow"/>
 					            <DateRangeSelection
                         			id="DateRangeNow"
-                        			dateValue="{path:'/dateStart'}"
-                        			secondDateValue="{path:'/dateEnd'}"
-                        			minDate="{path:'/dateMin'}"
-                        			maxDate="{path:'/dateMax'}"
+                        			dateValue="{path:'/dateStart1'}"
+                        			secondDateValue="{path:'/dateEnd1'}"
                         			displayFormat="MMM yyy"
-                        			change="handleChange"
+                        			change="onDate1Select"
                         		/>
                                 <Label text="{i18n>labelDatePredict}" labelFor="DateRangeFuture" class="sapUiSmallMarginTop" />
 					            <DateRangeSelection
                         			id="DateRangeFuture"
-                        			dateValue="{path:'/dateStart'}"
-                        			secondDateValue="{path:'/dateEnd'}"
-                        			minDate="{path:'/dateMin'}"
-                        			maxDate="{path:'/dateMax'}"
+                        			dateValue="{path:'/dateStart2'}"
+                        			secondDateValue="{path:'/dateEnd2'}"
                         			displayFormat="MMM yyy"
-                        			change="handleChange"
+                        			change="onDate2Select"
                         		/>
 					        </VBox>
                         </custom:content>
                     </custom:Panel>
-				    <custom:Panel headerText="{i18n>productListCurrent}" expandable="true" expanded="{= !${device>/system/phone} }"
+				    <custom:Panel headerText="{i18n>productListCurrent}" expandable="true" expanded="true"
 				     class="sapUiNoContentPadding" >
 				        <custom:content>
                 	        <List id="ProductList" 
@@ -75,6 +71,7 @@
     					<dependents>
     						<ActionSheet id="shareSheet" showCancelButton="true" placement="Bottom">
     							<buttons>
+    								<Button id="shareNative" icon="sap-icon://share-2" text="{i18n>shareNative}" press="onShareNativePress" visible="{path:'', formatter:'.formatter.canShareNative'}" />
     								<Button id="shareEmail" icon="sap-icon://email" text="{i18n>shareSendEmail}" press="onShareEmailPress"/>
     								<Button id="shareInJam" icon="sap-icon://jam" text="{i18n>shareOnJamTitle}" press="onShareInJamPress" visible="{FLP>/isShareInJamActive}"/>
     								<footerbar:AddBookmarkButton id="shareTile" appData="{ path: '/pageTitle', formatter: '.formatter.shareTileData' }"/>

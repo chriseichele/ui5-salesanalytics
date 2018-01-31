@@ -16,7 +16,9 @@
 			</VBox>
 			<VBox class="sapUiTinyMargin sapUiSmallMarginTop">
 		        <Label text="{i18n>Revenue}" />
-			    <FormattedText htmlText="&lt;strong&gt;{path: 'sales2>REVENUE', type:'sap.ui.model.type.Float' } {sales2>CURRENCY}&lt;/strong&gt;" />
+			    <FormattedText htmlText="&lt;strong&gt;
+			        {path: 'sales2>REVENUE', type:'sap.ui.model.type.Float', formatOptions: { minFractionDigits:2, maxFractionDigits:2 } } 
+			        {sales2>CURRENCY}&lt;/strong&gt;" />
 			</VBox>
 			<VBox class="sapUiTinyMargin sapUiSmallMarginTop">
 		        <Label text="{i18n>RevenuePerItem}" />

@@ -351,59 +351,22 @@ sap.ui.define([
 		    
 		    let sProductGroups = "";
 		    Object.keys(oSalesOrg.ProductGroups).forEach(function(key) {
-		        sProductGroups = sProductGroups + key + ",";
+		        sProductGroups = sProductGroups + key + "_" + sSalesOrg + ",";
             });
             sProductGroups = sProductGroups.slice(0, -1);
             
 			this.getRouter().navTo("predict");
 			this.getRouter().navTo("predict", { 
-				salesOrg : sSalesOrg,
-				productGroups : sProductGroups
+				productGroups : sProductGroups,
+				yearStart1: iYear,
+				monthStart1: 1,
+				yearEnd1: iYear,
+				monthEnd1: 12,
+				yearStart2: iYear + 1,
+				monthStart2: 1,
+				yearEnd2: iYear + 1,
+				monthEnd2: 12
 			}, true);
-		},
-
-		/* =========================================================== */
-		/* event handlers                                              */
-		/* =========================================================== */
-
-		/**
-		 * Event handler when the share button has been clicked
-		 * @param {sap.ui.base.Event} oEvent the butten press event
-		 * @public
-		 */
-		onSharePress: function() {
-			let oShareSheet = this.byId("shareSheet");
-			oShareSheet.addStyleClass(this.getOwnerComponent().getContentDensityClass());
-			oShareSheet.openBy(this.byId("shareButton"));
-		},
-
-		/**
-		 * Event handler when the share by E-Mail button has been clicked
-		 * @public
-		 */
-		onShareEmailPress: function() {
-			sap.m.URLHelper.triggerEmail(
-				null,
-				this.oModel.getProperty("/shareSendEmailSubject"),
-				this.oModel.getProperty("/shareSendEmailMessage") + window.location.href
-			);
-		},
-
-		/**
-		 * Event handler when the share in JAM button has been clicked
-		 * @public
-		 */
-		onShareInJamPress: function() {
-			let oShareDialog = sap.ui.getCore().createComponent({
-				name: "sap.collaboration.components.fiori.sharing.dialog",
-				settings: {
-					object: {
-						id: location.href,
-						share: this.oModel.getProperty("/shareOnJamTitle")
-					}
-				}
-			});
-			oShareDialog.open();
 		},
 		
 		/* HELP FUNCTIONS */

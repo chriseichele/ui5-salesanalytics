@@ -1,41 +1,27 @@
+var param3_Strg = $.request.parameters.get('sales_org');
+var param4_Strg = $.request.parameters.get('product_group');
 
-function createEntryOrg(rs) {
-	return {
-	    'type': 'Feature',
-		'id': "SO" + rs.getInteger(1),
-		'value':  rs.getDouble(2)
-		};
-}
-
-var param1 = $.request.parameters.get('num1');
-
-var query = 'CALL "GBI_005"."PAL_FORECAST_LR_PROC"("GBI_005"."PAL_FMLR_PREDICTDATA_TBL", "GBI_005"."PAL_MLR_RESULTS_TBL", "GBI_005"."PAL_CONTROL_TBL", "GBI_005"."PAL_FMLR_FITTED_TBL") with overview;';
 try {
-	var conn = $.db.getConnection();
-	var pstmt = conn.prepareCall(query);
-	pstmt.execute();
+    var conn = $.db.getConnection();
+    var query = 'SELECT DISTINCT "PRODUCT_GROUP_MAPPED" FROM "_SYS_BIC"."gbi-student-006.SalesDataAnalytics.data/SALES_ALL" WHERE "PRODUCT_GROUP" = \''+ param4_Strg + '\';';
 	
-    query = 'SELECT * FROM "GBI_005"."PAL_FMLR_FITTED_TBL";';
+	var pstmt = conn.prepareStatement(query);
+	var rs = pstmt.executeQuery();
+	
+	rs.next();
+	var param3 = rs.getInteger(1);
+	
+    query = 'SELECT DISTINCT "SALES_ORG_MAPPED" FROM "_SYS_BIC"."gbi-student-006.SalesDataAnalytics.data/SALES_ALL" WHERE "SALES_ORGANISATION" = \''+ param3_Strg + '\';';
 	
 	pstmt = conn.prepareStatement(query);
-	var rs = pstmt.executeQuery();
+	rs = pstmt.executeQuery();
 
-	var fCollection = {'type': "FeatureCollection"};
-	fCollection.features = [];
-	
-	while(rs.next()) {
-		fCollection.features.push(createEntryOrg(rs));
-	}
-	
-	var result = rs;
-
-	rs.close();
-	pstmt.close();
-	conn.close();
+	rs.next();
+	var param4 = rs.getInteger(1);
 	
 	$.response.contentType = "application/json";
 	$.response.headers.set("access-control-allow-origin", "*");
-	$.response.setBody(JSON.stringify(fCollection));
+	$.response.setBody(param4);
 	$.response.status = $.net.http.OK;
 } catch(e) {
 	$.response.status = $.net.http.INTERNAL_SERVER_ERROR;

@@ -26,6 +26,19 @@ sap.ui.define([], function() {
 			return d.toLocaleString(locale, {month: "long"});
 		},
 		
+		formatDateYearMonth : function(v) {
+            var oDateFormat = sap.ui.core.format.DateFormat.getDateTimeInstance({pattern: "MMM YYYY"});
+            return oDateFormat.format(new Date(v));
+		},
+		
+		salesOrg: function(sKey) {
+		    let sTitle = sKey;
+		    if(this.getSalesOrgText) {
+		        this.getSalesOrgText(sKey, function(s){sTitle = s;});
+		    }
+		    return sTitle;
+		},
+		
 		setEmptyText: function(sText) {
 		    if(!sText || sText === "0") {
 		        return this.getResourceBundle().getText("unclassified");

@@ -1,4 +1,3 @@
-
 function createEntryOrg(rs) {
 	return {
 	    'type': 'Feature',
@@ -9,13 +8,36 @@ function createEntryOrg(rs) {
 
 var param1 = $.request.parameters.get('year');
 var param2 = $.request.parameters.get('month');
-var param3 = $.request.parameters.get('sales_org');
-var param4 = $.request.parameters.get('product_group');
+var param3_Strg = $.request.parameters.get('sales_org');
+var param4_Strg = $.request.parameters.get('product_group');
 
 try {
     var conn = $.db.getConnection();
+    var query = 'SELECT DISTINCT "PRODUCT_GROUP_MAPPED" FROM "_SYS_BIC"."gbi-student-006.SalesDataAnalytics.data/SALES_ALL" WHERE "PRODUCT_GROUP" = \''+ param4_Strg + '\';';
+	
+	var pstmt = conn.prepareStatement(query);
+	var rs = pstmt.executeQuery();
+	
+	rs.next();
+	var param4 = rs.getInteger(1)+"";
+	
+    query = 'SELECT DISTINCT "SALES_ORG_MAPPED" FROM "_SYS_BIC"."gbi-student-006.SalesDataAnalytics.data/SALES_ALL" WHERE "SALES_ORGANISATION" = \''+ param3_Strg + '\';';
+	
+	pstmt = conn.prepareStatement(query);
+	rs = pstmt.executeQuery();
 
-	var pstmt = conn.prepareStatement("DELETE FROM \"GBI_005\".\"PAL_FMLR_PREDICTDATA_TBL\";");
+	rs.next();
+	var param3 = rs.getInteger(1)+"";
+	
+} catch(e) {
+	$.response.status = $.net.http.INTERNAL_SERVER_ERROR;
+	$.response.setBody("ERROR while catch" + e.message);
+}
+
+try {
+    conn = $.db.getConnection();
+
+	pstmt = conn.prepareStatement("DELETE FROM \"GBI_005\".\"PAL_FER_PREDICTDATA_TBL\";");
 	pstmt.execute();
 	conn.commit();
 	pstmt.close();
@@ -26,7 +48,7 @@ try {
     output.data = [];
     conn = $.db.getConnection();
     conn.prepareStatement("SET SCHEMA \"GBI_005\"").execute();
-    var st = conn.prepareStatement("INSERT INTO \"PAL_FMLR_PREDICTDATA_TBL\" values(0,?,?,?,?,1)");
+    var st = conn.prepareStatement("INSERT INTO \"PAL_FER_PREDICTDATA_TBL\" values(0,?,?,?,?)");
     st.setString(1,param1);
     st.setString(2,param2);
     st.setString(3,param3);
@@ -41,23 +63,16 @@ try {
     output.data.push(record);
     conn.close();
 
-	var query = "CALL \"GBI_005\".\"PAL_FORECAST_LR_PROC\"(\"GBI_005\".\"PAL_FMLR_PREDICTDATA_TBL\", \"GBI_005\".\"PAL_MLR_RESULTS_TBL\", \"GBI_005\".\"PAL_CONTROL_TBL\", \"GBI_005\".\"PAL_FMLR_FITTED_TBL\") with overview;";
+	query = "CALL \"GBI_005\".\"PAL_FORECAST_EXPR_PROC\"(\"GBI_005\".\"PAL_FER_PREDICTDATA_TBL\", \"GBI_005\".\"PAL_ER_RESULTS_TBL\", \"GBI_005\".\"PAL_CONTROL_TBL\", \"GBI_005\".\"PAL_FER_FITTED_TBL\") with overview;";
 	conn = $.db.getConnection();
 
 	pstmt = conn.prepareCall(query);
 	pstmt.execute();
 	
-    query = 'SELECT * FROM "GBI_005"."PAL_FMLR_FITTED_TBL";';
+    query = 'SELECT * FROM "GBI_005"."PAL_FER_FITTED_TBL";';
 	
 	pstmt = conn.prepareStatement(query);
-	var rs = pstmt.executeQuery();
-	
-	/*var fCollection = {'type': "FeatureCollection"};
-	fCollection.features = [];
-	
-	while(rs.next()) {
-		fCollection.features.push(createEntryOrg(rs));
-	}*/
+	rs = pstmt.executeQuery();
 	
 	rs.next();
 	var result = rs.getDouble(2);

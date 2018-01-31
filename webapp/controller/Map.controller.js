@@ -544,7 +544,6 @@ sap.ui.define([
 		
 		transformSalesModel: function(oData) {
                 
-                //TODO: update legend logic to product groups
                 let iRevenueMin = this.oModel.getProperty("/Legend/Revenue/Min");
                 let iRevenueMax = this.oModel.getProperty("/Legend/Revenue/Max");
                 let iRevenueSteps = (iRevenueMax - iRevenueMin) / 4;

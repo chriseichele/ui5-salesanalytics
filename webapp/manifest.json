@@ -78,7 +78,7 @@
                     "loadMetadataAsync": false,
                     "json": true,
                     "bJSON": true,
-                    "defaultBindingMode": "TwoWay",
+                    "defaultBindingMode": "OneWay",
                     "useBatch": true,
                     "refreshAfterChange": false,
                     "disableHeadRequestForToken": true

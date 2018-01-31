@@ -89,20 +89,23 @@
             		expandable="false"
             		class="sapUiResponsiveContentPadding">
             		<items>
-            			<IconTabFilter icon="sap-icon://horizontal-bar-chart-2" text="Bar Chart" key="bar" />
             			<IconTabFilter icon="sap-icon://vertical-bar-chart" text="Column Chart" key="column" />
-            			<IconTabFilter icon="sap-icon://horizontal-stacked-chart" text="Stacked Bars" key="stacked_bar" />
-            			<IconTabFilter icon="sap-icon://vertical-stacked-chart" text="Stacked Columns" key="stacked_column" />
             			<IconTabFilter icon="sap-icon://line-chart" text="Line Chart" key="line" />
+            			<!--
+            			<IconTabFilter icon="sap-icon://scatter-chart" text="Scatter" key="scatter" />
+            			<IconTabFilter icon="sap-icon://scatter-chart" text="Scatter" key="timeseries_scatter" />
             			<IconTabFilter icon="sap-icon://bubble-chart" text="Bubble Chart" key="bubble" />
             			<IconTabFilter icon="sap-icon://donut-chart" text="Donut" key="donut" />
+            			<IconTabFilter icon="sap-icon://horizontal-bar-chart-2" text="Bar Chart" key="bar" />
+            			<IconTabFilter icon="sap-icon://horizontal-stacked-chart" text="Stacked Bars" key="stacked_bar" />
+            			<IconTabFilter icon="sap-icon://vertical-stacked-chart" text="Stacked Columns" key="stacked_column" />
             			<IconTabFilter icon="sap-icon://pie-chart" text="Pie Chart" key="pie" />
             			<IconTabFilter icon="sap-icon://heatmap-chart" text="Heatmap" key="heatmap" />
             			<IconTabFilter icon="sap-icon://horizontal-waterfall-chart" text="Waterfall" key="horizontal_waterfall" />
             			<IconTabFilter icon="sap-icon://vertical-waterfall-chart" text="Waterfall" key="waterfall" />
             			<IconTabFilter icon="sap-icon://horizontal-bullet-chart" text="Bullet" key="bullet" />
             			<IconTabFilter icon="sap-icon://vertical-bullet-chart" text="Bullet" key="vertical_bullet" />
-            			<IconTabFilter icon="sap-icon://scatter-chart" text="Scatter" key="timeseries_scatter" />
+            			-->
             		</items>
             		<content>
                             <commons:ChartContainer id="ChartContainer" showFullScreen="true" autoAdjustHeight="true" showLegend="true" 

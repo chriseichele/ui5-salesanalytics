@@ -85,7 +85,14 @@
       <keyMapping columnObjectName="SalesPositions" columnName="CUSTOMER_NUMBER"/>
     </attribute>
   </attributes>
-  <calculatedAttributes/>
+  <calculatedAttributes>
+    <calculatedAttribute id="date" order="12" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false" hidden="false">
+      <descriptions defaultDescription="date"/>
+      <keyCalculation datatype="DATE" expressionLanguage="COLUMN_ENGINE">
+        <formula>date(string(&quot;YEAR&quot;)+'-'+string(&quot;MONTH&quot;)+'-01')</formula>
+      </keyCalculation>
+    </calculatedAttribute>
+  </calculatedAttributes>
   <baseMeasures>
     <measure id="DISCOUNT" order="8" aggregationType="sum" measureType="simple">
       <descriptions defaultDescription="DISCOUNT"/>

@@ -14,7 +14,11 @@ sap.ui.define([
 		onInit: function() {
             this.oModel = new JSONModel();
 			this.oModel.setData({"pageTitle": this.getResourceBundle().getText("predictViewTitle")});
+			this.oModel.setProperty("/ProductGroupList",{});
             this.setModel(this.oModel);
+            
+            this.oSalesModelLocal = new JSONModel();
+            this.setModel(this.oSalesModelLocal,"sales2");
             
 		    this.oIconTabBarCharts = this.getView().byId("IconTabBarChartTypes");
 		    this.oSplitView = this.getView().byId("SplitView");
@@ -27,21 +31,8 @@ sap.ui.define([
 			this.oIconTabBarCharts.attachEvent('select', function attachTabSelect(oEvent) {
 				me._onTabSelect(oEvent, this);
 			});
-		    
-		    let aChartTypes = ["column", "dual_column", "bar", "dual_bar", "stacked_bar", "stacked_column", "line",
-            			       "dual_line", "combination", "bullet", "time_bullet", "bubble", "time_bubble", 
-            			       "pie", "donut", "timeseries_column", "timeseries_line", "timeseries_scatter", 
-            			       "timeseries_bubble", "timeseries_stacked_column", "timeseries_100_stacked_column", 
-            			       "timeseries_bullet", "timeseries_waterfall", "scatter", "vertical_bullet", "dual_stacked_bar", 
-            			       "100_stacked_bar", "100_dual_stacked_bar", "dual_stacked_column", "100_stacked_column", 
-            			       "100_dual_stacked_column", "stacked_combination", "horizontal_stacked_combination", 
-            			       "dual_stacked_combination", "dual_horizontal_stacked_combination", "heatmap",
-            			       "waterfall", "horizontal_waterfall"];
-            aChartTypes.forEach(function(sKey){
-                me.oIconTabBarCharts.addItem(new sap.m.IconTabFilter({"key":sKey,"text":sKey}));
-            });
-		    
-		    this.configureChart();
+			
+			this.oBusyDialog = new sap.m.BusyDialog();
 		    
 		},
 
@@ -54,7 +45,6 @@ sap.ui.define([
 		
 		_onNavBack: function() {
 		    this.oSplitView.backMaster();
-            //this.oSplitView.toMaster(this.getView().byId("master"));
         },
 		
 		_onObjectMatched: function (oEvent) {
@@ -98,13 +88,23 @@ sap.ui.define([
                     });
                 }, this);
             }
+		    
+		    /* after route is processed: configure chart data to be displayed */
+            if(!this.getView().getParent().getParent().getBusy()) {
+                this.oBusyDialog.open();
+		    }
+		    this.configureChart();
 		},
 		
 		_onTabSelect: function (oEvent) {
+		    this.getRouter().stop();
 		    this.oRouteArguments.chartType = oEvent.getParameter("key");
 			if(oEvent.getParameter("key")) {
 				this.getRouter().navTo("predict", this.oRouteArguments, true);
 			}
+		    this.configureChart(false);
+		    window.setTimeout(function(){this.getRouter().initialize(true);}.bind(this), 1);
+		    //this.getRouter().initialize();
 		},
 		
 		onDate1Select: function(oEvent) {
@@ -131,75 +131,376 @@ sap.ui.define([
 			this.getRouter().navTo("predict", this.oRouteArguments, true);
 		},
 		
-		configureChart: function() {
+		rereadSalesData: function(callback) {
 		    
-            //way 1: use the route 
+            this.oSalesModel = this.getModel("sales");
+		    this.oSalesModelLocal.oData = {};
+            
+		    let aFilter = [];
+		    
+		    let ds1 = this.oModel.getProperty("/dateStart1");
+		    let de1 = this.oModel.getProperty("/dateEnd1");
+		    let oFilterYears;
+		    if(ds1 && de1) {
+    		    let iYearStart1 = ds1.getFullYear();
+    		    let iMonthStart1 = ds1.getMonth() + 1;
+    		    let iYearEnd1 = de1.getFullYear();
+    		    let iMonthEnd1 = de1.getMonth() + 1;
+		    
+    		    oFilterYears = new sap.ui.model.Filter({
+                    filters: [
+                        new sap.ui.model.Filter({
+                            filters: [
+                                new sap.ui.model.Filter({
+                                    filters: [
+                                        new sap.ui.model.Filter("YEAR", sap.ui.model.FilterOperator.EQ, iYearStart1),
+                                        new sap.ui.model.Filter("MONTH", sap.ui.model.FilterOperator.GE, iMonthStart1)
+                                    ],
+                                    and: true
+                                }),
+                                new sap.ui.model.Filter("YEAR", sap.ui.model.FilterOperator.GT, iYearStart1)
+                            ],
+                            and: false
+                        }),
+                        new sap.ui.model.Filter({
+                            filters: [
+                                new sap.ui.model.Filter({
+                                    filters: [
+                                        new sap.ui.model.Filter("YEAR", sap.ui.model.FilterOperator.EQ, iYearEnd1),
+                                        new sap.ui.model.Filter("MONTH", sap.ui.model.FilterOperator.LE, iMonthEnd1)
+                                    ],
+                                    and: true
+                                }),
+                                new sap.ui.model.Filter("YEAR", sap.ui.model.FilterOperator.LT, iYearEnd1)
+                            ],
+                            and: false
+                        })
+                    ],
+                    and: true
+                });
+		    }
+                           
+		    let oGroups = this.oModel.getProperty("/ProductGroupList");
+		    let oFilterProdGroups;
+		    if(JSON.stringify(oGroups) !== "{}") {
+		        let aFilterProdGroups = [];
+		        let oGroupList = this.oModel.getProperty("/ProductGroupList");
+		        Object.keys(oGroupList).forEach(function(key) {
+                    let el = oGroupList[key];
+    		        if(el.key && el.salesOrg){         
+    		            let oFilter =  new sap.ui.model.Filter({
+                            filters: [
+                                new sap.ui.model.Filter("SALES_ORGANISATION", sap.ui.model.FilterOperator.EQ, el.salesOrg),
+                                new sap.ui.model.Filter("PRODUCT_GROUP", sap.ui.model.FilterOperator.EQ, el.key)
+                            ],
+                            and: true
+                        });
+    		            aFilterProdGroups.push(oFilter);
+    		        }
+                });
+                oFilterProdGroups = new sap.ui.model.Filter({filters: aFilterProdGroups, and:false});
+		    }
+		    
+		    if(oFilterYears && oFilterProdGroups) {
+		        aFilter.push(new sap.ui.model.Filter({filters:[oFilterYears,oFilterProdGroups],and:true}));
+		    } else if(oFilterProdGroups && this.oModel.getProperty("/dateStart2") ) {
+		        aFilter.push(oFilterProdGroups);
+		    }
+		    
+		    if(aFilter.length > 0) {
+		        let readPredictedData = function() {
+                    let sProductGroups = this.oRouteArguments.productGroups;
+                    if (sProductGroups) {
+                        sProductGroups.split(",").forEach(function(sProdGroupSalesOrg) {
+                            let aKeys = sProdGroupSalesOrg.split("_");
+                            let sProdGroup = aKeys[0];
+                            let sSalesOrg = aKeys[1];
+                            /* now we have every product group sales org combination at this loop level */
+                            /* iterate over years and months */
+                            let ds2 = this.oModel.getProperty("/dateStart2");
+                            let de2 = this.oModel.getProperty("/dateEnd2");
+                            let iYearStart2 = ds2.getFullYear();
+                            let iMonthStart2 = ds2.getMonth() + 1;
+                            let iYearEnd2 = de2.getFullYear();
+                            let iMonthEnd2 = de2.getMonth() + 1;
+                            let iYear = iYearStart2;
+                            let iMonth = iMonthStart2;
+                            let loadPredictedData = function(y,m,org,group){
+                                //TODO use asynchronous method, if service in backend is adjusted
+                                let oPredictModel = new JSONModel();
+                                oPredictModel.loadData('model/predict.xsjs' + '?year=' + y + '&month=' + m + '&sales_org=' + org + '&product_group=' + group, "", false);
+                                let iRevenuePredicted = oPredictModel.getData();
+                                let sId = y + "_" + m + "_" + org + "_" + group;
+                                let sPath = "/SalesMonthProductGroup/" + sId;
+                                let oEntry = this.oSalesModelLocal.getProperty(sPath);
+                                if(!oEntry) {
+                                    oEntry = { "YEAR":y,
+                                              "MONTH":m,
+                                              "SALES_ORGANISATION":org,
+                                              "PRODUCT_GROUP":group,
+                                              "date": new Date(Date.UTC(y, m - 1, 1)),
+                                              "REVENUE_PREDICTED": iRevenuePredicted,
+                                              "CURRENCY":"" };
+                                    this.oSalesModelLocal.setProperty(sPath,oEntry);
+                                } else {
+                                    oEntry.REVENUE_PREDICTED = iRevenuePredicted;
+                                }
+                                console.log(sId,iRevenuePredicted); //TODO: remove debugging output
+                                
+                                /*
+                                jQuery.ajax( {
+                                     type:'GET',
+                                     url:'model/predict.xsjs' + '?year=' + y + '&month=' + m + '&sales_org=' + org + '&product_group=' + group,
+                                     success:function(data) {
+                                        let iRevenuePredicted = data;
+                                        let sId = y + "_" + m + "_" + org + "_" + group;
+                                        let sPath = "/SalesMonthProductGroup/" + sId;
+                                        let oEntry = this.oSalesModelLocal.getProperty(sPath);
+                                        if(!oEntry) {
+                                            oEntry = { "YEAR":y,
+                                                      "MONTH":m,
+                                                      "SALES_ORGANISATION":org,
+                                                      "PRODUCT_GROUP":group,
+                                                      "date": new Date(Date.UTC(y, m - 1, 1)),
+                                                      "REVENUE_PREDICTED": iRevenuePredicted,
+                                                      "CURRENCY":"" };
+                                            this.oSalesModelLocal.setProperty(sPath,oEntry);
+                                        } else {
+                                            oEntry.REVENUE_PREDICTED = iRevenuePredicted;
+                                        }
+                                        // call callback again, after read data is processed
+                                        callback();
+                                     }.bind(this)
+                                });
+                                */
+                            }.bind(this);
+                            while(iYear < iYearEnd2 || (iYear === iYearEnd2 && iMonth <= iMonthEnd2)) {
+                                loadPredictedData(JSON.parse(JSON.stringify(iYear)),
+                                                  JSON.parse(JSON.stringify(iMonth)),
+                                                  JSON.parse(JSON.stringify(sSalesOrg)),
+                                                  JSON.parse(JSON.stringify(sProdGroup)));
+                                /* increase for next iteration */
+                                if(iMonth < 12) {
+                                    iMonth++;
+                                } else {
+                                    iMonth = 1;
+                                    iYear++;
+                                }
+                            }
+                            callback(); //TODO: remove callback on this position, if asynchronous service works
+                        }, this);
+                    }
+		        }.bind(this);
+    		    let processData = function(oData) {
+		            
+                    let items = oData.results;
+                    for(let k in items) {
+                        let el = items[k];
+                        if (typeof el !== 'function') {
+                            
+                            let sId = el.YEAR + "_" + el.MONTH + "_" + el.SALES_ORGANISATION + "_" + el.PRODUCT_GROUP; 
+                            let sPath = "/SalesMonthProductGroup/" + sId;
+                            let oEntry = this.oSalesModelLocal.getProperty(sPath);
+                            if(!oEntry) {
+                                oEntry = { "YEAR":el.YEAR,
+                                          "MONTH":el.MONTH,
+                                          "date":el.date,
+                                          "SALES_ORGANISATION":el.SALES_ORGANISATION,
+                                          "PRODUCT_GROUP":el.PRODUCT_GROUP,
+                                          "REVENUE":el.REVENUE,
+                                          "CURRENCY":el.CURRENCY };
+                                this.oSalesModelLocal.setProperty(sPath,oEntry);
+                            } else {
+                                oEntry.REVENUE = el.REVENUE;
+                                oEntry.CURRENCY = el.CURRENCY;
+                            }
+                        }
+                    }
+                    
+                    readPredictedData();
+		  
+    		    }.bind(this);
+    		    
+                this.oSalesModelLocal.setProperty("/SalesMonthProductGroup",{});
+    		    
+                let mParams = {
+                    success: processData,
+                    urlParameters: { '$select': 'YEAR,MONTH,date,SALES_ORGANISATION,PRODUCT_GROUP,REVENUE,CURRENCY' },
+                    filters: aFilter
+                  };
+                /* finally call read from sales cube */
+                this.oSalesModel.read("/SalesMonthProductGroup", mParams );
+		    }
+		},
+		
+		configureChart: function(rereadSalesData = true) {
+		    
             this.colorPalette = ["#5cbae6", "#b6d957", "#fac364"];
             this.colorPaletteManul = ['#5cbae6' , '#b6d957', '#fac364'];
             var chartContainer = this.getView().byId("ChartContainer");
             chartContainer.detachContentChange();
-            var amModel = new sap.ui.model.json.JSONModel("https://sapui5.hana.ondemand.com/test-resources/sap/viz/demokit/chartdemo/ByItemCity_sum.json");
-            var oDataset = new sap.viz.ui5.data.FlattenedDataset({
-              dimensions: [{
-                name: 'Item Category',
-                value: "{Item Category}"
-              }],
-              measures: [{
-                  name: 'Profit',
-                  value: '{Profit}'
-                },
-    
-                {
-                  name: "Cost",
-                  value: "{Cost}"
-                }, {
-                  name: "Revenue",
-                  value: '{Revenue}'
+            
+            let callback = function() {
+                let oDataset, feedValues1, feedValues2, feedValues3, feedAxisLabels, sVizTitle;
+                let i18n = this.getResourceBundle();
+                switch(this.oVizFrame.getVizType()) {
+                    case "column":
+                        sVizTitle = i18n.getText("vizTitleColumnChart");
+                        oDataset = new sap.viz.ui5.data.FlattenedDataset({
+                          dimensions: [{
+                            name: i18n.getText("SalesOrg"),
+                            displayValue: { path: "SALES_ORGANISATION", formatter: this.formatter.salesOrg.bind(this) },
+                            dataType: 'string',
+                            value: "{SALES_ORGANISATION}"
+                          },{
+                            name: i18n.getText("ProductGroup"),
+                            dataType: 'string',
+                            value: "{PRODUCT_GROUP}"
+                          }],
+                          measures: [{
+                              name: i18n.getText("Revenue"),
+                              value: '{REVENUE}'
+                            },{
+                              name: i18n.getText("RevenuePredicted"),
+                              value: '{REVENUE_PREDICTED}'
+                            }],
+                          data: {
+                            path: "/SalesMonthProductGroup"
+                          }
+                        });
+                        feedValues1 = new sap.viz.ui5.controls.common.feeds.FeedItem({
+                            'uid': "primaryValues",
+                            'type': "Measure",
+                            'values': [i18n.getText("Revenue"),i18n.getText("RevenuePredicted")]
+                        });
+                        feedAxisLabels = new sap.viz.ui5.controls.common.feeds.FeedItem({
+                            'uid': "axisLabels",
+                            'type': "Dimension",
+                            'values': [i18n.getText("SalesOrg"),i18n.getText("ProductGroup")]
+                        });
+                        break;
+                        
+                    case "line":
+                        sVizTitle = i18n.getText("vizTitleLineChart");
+                        oDataset = new sap.viz.ui5.data.FlattenedDataset({
+                          dimensions: [{
+                            name: i18n.getText("Month"),
+                            dataType: 'string',
+                            value: "{MONTH}",
+                            displayValue: { path: "MONTH", formatter: this.formatter.month.bind(this) }
+                          }],
+                          measures: [{
+                              name: i18n.getText("Revenue"),
+                              value: '{REVENUE}'
+                            },{
+                              name: i18n.getText("RevenuePredicted"),
+                              value: '{REVENUE_PREDICTED}'
+                            }],
+                          data: {
+                            path: "/SalesMonthProductGroup"
+                          }
+                        });
+                        feedValues1 = new sap.viz.ui5.controls.common.feeds.FeedItem({
+                            'uid': "primaryValues",
+                            'type': "Measure",
+                            'values': [i18n.getText("Revenue"),i18n.getText("RevenuePredicted")]
+                        });
+                        feedAxisLabels = new sap.viz.ui5.controls.common.feeds.FeedItem({
+                            'uid': "axisLabels",
+                            'type': "Dimension",
+                            'values': [i18n.getText("Month")]
+                        });
+                        break;
+                        
+                    case "timeseries_line":
+                        sVizTitle = i18n.getText("vizTitleLineChart");
+                        oDataset = new sap.viz.ui5.data.FlattenedDataset({
+                          dimensions: [{
+                            name: i18n.getText("Date"),
+                            dataType: 'date',
+                            value: "{date}"
+                          }],
+                          measures: [{
+                              name: i18n.getText("Revenue"),
+                              value: '{REVENUE}'
+                            },{
+                              name: i18n.getText("RevenuePredicted"),
+                              value: '{REVENUE_PREDICTED}'
+                            }],
+                          data: {
+                            path: "/SalesMonthProductGroup"
+                          }
+                        });
+                        feedValues1 = new sap.viz.ui5.controls.common.feeds.FeedItem({
+                            'uid': "valueAxis",
+                            'type': "Measure",
+                            'values': [i18n.getText("Revenue"),i18n.getText("RevenuePredicted")]
+                        });
+                        feedAxisLabels = new sap.viz.ui5.controls.common.feeds.FeedItem({
+                            'uid': "timeAxis",
+                            'type': "Dimension",
+                            'values': [i18n.getText("Date")]
+                        });
+                        break;
                 }
-              ],
-              data: {
-                path: "/book"
-              }
-            });
-            var feedPrimaryValues = new sap.viz.ui5.controls.common.feeds.FeedItem({
-                'uid': "primaryValues",
-                'type': "Measure",
-                'values': ["Profit", "Cost", 'Revenue']
-              }),
-              feedAxisLabels = new sap.viz.ui5.controls.common.feeds.FeedItem({
-                'uid': "axisLabels",
-                'type': "Dimension",
-                'values': ["Item Category"]
-              });
-    
-            // -------- VizFrame ----------------
-            this.oVizFrame.setDataset(oDataset);
-            this.oVizFrame.setModel(amModel);
-            this.oVizFrame.addFeed(feedPrimaryValues);
-            this.oVizFrame.addFeed(feedAxisLabels);
-            this.oVizFrame.setVizProperties({
-              plotArea: {
-                dataLabel: {
-                  visible: true
-                },
-                colorPalette: this.colorPalette
-              },
-              legend: {
-                title: {
-                  visible: false
-                }
-              },
-              title: {
-                visible: true,
-                text: 'Profit and Cost and Revenue by Item Category'
-              }
-            });
-       
-            var popoverProps = {};
-            this.chartPopover = new sap.viz.ui5.controls.Popover(popoverProps);
-    
-            this.chartPopover.setActionItems();
-            this.chartPopover.connect(this.oVizFrame.getVizUid());
+        
+                // -------- VizFrame ----------------
+                this.oVizFrame.setDataset(oDataset);
+                this.oVizFrame.setModel(this.oSalesModelLocal);
+                this.oVizFrame.destroyFeeds();
+                if(feedValues1) { this.oVizFrame.addFeed(feedValues1); }
+                if(feedValues2) { this.oVizFrame.addFeed(feedValues2); }
+                if(feedValues3) { this.oVizFrame.addFeed(feedValues3); }
+                this.oVizFrame.addFeed(feedAxisLabels);
+                this.oVizFrame.setVizProperties({
+                  general: {
+                      groupData: false
+                  },
+                  plotArea: {
+                    window: {
+                        start: "firstDataPoint",
+                        end: "lastDataPoint"
+                    },
+                    dataLabel: {
+                      visible: true
+                    },
+                    colorPalette: this.colorPalette
+                  },
+                  legend: {
+                    title: {
+                      visible: false
+                    }
+                  },
+                  title: {
+                    visible: true,
+                    text: sVizTitle
+                  }
+                });
+           
+                var popoverProps = {};
+                this.chartPopover = new sap.viz.ui5.controls.Popover(popoverProps);
+        
+                this.chartPopover.setActionItems();
+                this.chartPopover.connect(this.oVizFrame.getVizUid());
+                
+                this.oBusyDialog.close();
+                
+            }.bind(this);
+		    
+		    if(this.oRouteArguments.chartType === "table") {
+		        this.getView().byId("chartBox").setVisible(false);
+		        this.getView().byId("tableBox").setVisible(true);
+		        callback = function(){this.oBusyDialog.close();}.bind(this);
+		    } else {
+		        this.getView().byId("chartBox").setVisible(true);
+		        this.getView().byId("tableBox").setVisible(false);
+		    }
+            
+            if(rereadSalesData) {
+                this.rereadSalesData(callback);
+            } else {
+                callback();
+            }
             
 		},
 
@@ -219,7 +520,9 @@ sap.ui.define([
 		
 		onSwitchChartType: function(oEvent) {
 		    let sKey = oEvent.getParameter("key");
-		    this.oVizFrame.setVizType(sKey);
+		    if(sKey !== "table") {
+		        this.oVizFrame.setVizType(sKey);
+		    }
 		},
 		
 		onAddNewListItemDialog: function() {
@@ -421,13 +724,18 @@ sap.ui.define([
 		},
 		
 		addRouteProdGroupKey: function(sKey) {
+		    if(this.oRouteArguments.productGroups) {
 		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups + "," + sKey;
+		    } else {
+		        this.oRouteArguments.productGroups = sKey;
+		    }
 			this.getRouter().navTo("predict", this.oRouteArguments, true);
 		},
 		
 		removeRouteProdGroupKey: function(sKey) {
 		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace(sKey + ",", '');
 		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace("," + sKey, '');
+		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace(sKey, '');
 			this.getRouter().navTo("predict", this.oRouteArguments, true);
 		}
 

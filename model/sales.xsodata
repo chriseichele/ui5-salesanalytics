@@ -21,7 +21,7 @@ service {
         aggregates always; 
     
     "gbi-student-006.SalesDataAnalytics.data::SALES_CUBE" as "SalesMonthProductGroup" 
-        with ("YEAR", "MONTH", "SALES_ORGANISATION", "SHAPE", "PRODUCT_GROUP", "REVENUE","CURRENCY","SALES_QUANTITY")
+        with ("YEAR", "MONTH", "date", "SALES_ORGANISATION", "SHAPE", "PRODUCT_GROUP", "REVENUE","CURRENCY","SALES_QUANTITY")
         key ("YEAR", "MONTH", "SALES_ORGANISATION", "PRODUCT_GROUP") 
         /* keys generate local "ID" */
         aggregates always (SUM of "SALES_QUANTITY", SUM of "REVENUE");

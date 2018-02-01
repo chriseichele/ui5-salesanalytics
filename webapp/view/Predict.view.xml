@@ -87,10 +87,12 @@
 	                stretchContentHeight="true"
             		expanded="true"
             		expandable="false"
-            		class="sapUiResponsiveContentPadding">
+            		class="sapUiNoContentPadding" >
             		<items>
-            			<IconTabFilter icon="sap-icon://vertical-bar-chart" text="Column Chart" key="column" />
-            			<IconTabFilter icon="sap-icon://line-chart" text="Line Chart" key="line" />
+            			<IconTabFilter icon="sap-icon://vertical-bar-chart" text="{i18n>ChartColumn}" key="column" />
+            			<IconTabFilter icon="sap-icon://line-chart" text="{i18n>ChartLine}" key="line" />
+            			<IconTabFilter icon="sap-icon://line-chart-time-axis" text="{i18n>ChartTimeseries}" key="timeseries_line" />
+            			<IconTabFilter icon="sap-icon://table-chart" text="{i18n>ChartTable}" key="table" />
             			<!--
             			<IconTabFilter icon="sap-icon://scatter-chart" text="Scatter" key="scatter" />
             			<IconTabFilter icon="sap-icon://scatter-chart" text="Scatter" key="timeseries_scatter" />
@@ -108,16 +110,70 @@
             			-->
             		</items>
             		<content>
-                            <commons:ChartContainer id="ChartContainer" showFullScreen="true" autoAdjustHeight="true" showLegend="true" 
-                                class="ChartContainerHeader" showPersonalization="false" contentChange="attachContentChange">
-                                <commons:content>
-                                    <commons:ChartContainerContent icon="sap-icon://horizontal-bar-chart">
-                                        <commons:content>
-                                            <viz:VizFrame id="VizFrame" uiConfig="{applicationSet:'fiori'}"></viz:VizFrame>
-                                        </commons:content>
-                                    </commons:ChartContainerContent>
-                                </commons:content>
-                            </commons:ChartContainer>
+            		
+            		    <Panel id="chartBox" class="sapUiResponsiveContentPadding" visible="false" height="100%">
+            		        <content>
+                                <commons:ChartContainer id="ChartContainer" showFullScreen="true" autoAdjustHeight="true" showLegend="true" 
+                                    class="ChartContainerHeader" showPersonalization="false" 
+                                    contentChange="attachContentChange" >
+                                    <commons:content>
+                                        <commons:ChartContainerContent icon="sap-icon://horizontal-bar-chart">
+                                            <commons:content>
+                                                <viz:VizFrame id="VizFrame" uiConfig="{applicationSet:'fiori'}"></viz:VizFrame>
+                                            </commons:content>
+                                        </commons:ChartContainerContent>
+                                    </commons:content>
+                                </commons:ChartContainer>
+            		        </content>
+                        </Panel>
+                            
+                        <ScrollContainer id="tableBox" vertical="true" horizontal="false" visible="false" height="100%" >
+                			<Table
+                			    fixedLayout="false"
+                        		growing="true"
+                        		growingScrollToLoad="true"
+                				items="{sales2>/SalesMonthProductGroup}" >
+                				<columns>
+                					<Column hAlign="End">
+                						<Label text="{i18n>Year}" />
+                					</Column>
+                					<Column>
+                						<Label text="{i18n>Month}" />
+                					</Column>
+                					<Column>
+                						<Label text="{i18n>SalesOrg}" />
+                					</Column>
+                					<Column>
+                						<Label text="{i18n>ProductGroup}" />
+                					</Column>
+                					<Column hAlign="End">
+                						<Label text="{i18n>Revenue}" />
+                					</Column>
+                					<Column hAlign="End">
+                						<Label text="{i18n>RevenuePredicted}" />
+                					</Column>
+                					<Column hAlign="Center">
+                						<Label text="{i18n>Currency}" />
+                					</Column>
+                				</columns>
+                				<items>
+                        			<ColumnListItem>
+                        				<cells>
+                							<Text text="{sales2>YEAR}" />
+                							<Text text="{ path: 'sales2>MONTH', formatter: '.formatter.month' }" />
+                							<Text text="{ path: 'sales2>SALES_ORGANISATION', formatter: '.formatter.salesOrg' }" />
+                							<Text text="{sales2>PRODUCT_GROUP}" />
+					                        <ObjectNumber number="{ path: 'sales2>REVENUE', type:'sap.ui.model.type.Float', 
+                            			          formatOptions: { minFractionDigits:2, maxFractionDigits:2 } }" />
+					                        <ObjectNumber number="{ path: 'sales2>REVENUE_PREDICTED', type:'sap.ui.model.type.Float', 
+                            			          formatOptions: { minFractionDigits:2, maxFractionDigits:2 } }" />
+                							<Text text="{sales2>CURRENCY}" />
+                        				</cells>
+                        			</ColumnListItem>
+                				</items>
+                			</Table>
+                	    </ScrollContainer>
+			
             		</content>
             	</IconTabBar>
                 	

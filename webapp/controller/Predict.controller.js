@@ -229,50 +229,84 @@ sap.ui.define([
                                 //TODO use asynchronous method, if service in backend is adjusted
                                 let oPredictModel = new JSONModel();
                                 oPredictModel.loadData('model/predict.xsjs' + '?year=' + y + '&month=' + m + '&sales_org=' + org + '&product_group=' + group, "", false);
-                                let iRevenuePredicted = oPredictModel.getData();
-                                let sId = y + "_" + m + "_" + org + "_" + group;
-                                let sPath = "/SalesMonthProductGroup/" + sId;
-                                let oEntry = this.oSalesModelLocal.getProperty(sPath);
+                                let iRevenuePredicted = parseFloat(oPredictModel.getData());
+                                let sId, sPath, oEntry;
+                                
+                                // sales year/month/productgroup
+                                sId = y + "_" + m + "_" + org + "_" + group;
+                                sPath = "/SalesYearMonthProductGroup/" + sId;
+                                oEntry = this.oSalesModelLocal.getProperty(sPath);
                                 if(!oEntry) {
                                     oEntry = { "YEAR":y,
-                                              "MONTH":m,
-                                              "SALES_ORGANISATION":org,
-                                              "PRODUCT_GROUP":group,
-                                              "date": new Date(Date.UTC(y, m - 1, 1)),
-                                              "REVENUE_PREDICTED": iRevenuePredicted,
-                                              "CURRENCY":"" };
+                                               "MONTH":m,
+                                               "SALES_ORGANISATION":org,
+                                               "PRODUCT_GROUP":group,
+                                               "date": new Date(Date.UTC(y, m - 1, 1)),
+                                               "REVENUE_PREDICTED": iRevenuePredicted,
+                                               "CURRENCY":"" };
                                     this.oSalesModelLocal.setProperty(sPath,oEntry);
                                 } else {
-                                    oEntry.REVENUE_PREDICTED = iRevenuePredicted;
+                                    if(oEntry.REVENUE_PREDICTED) {
+                                        oEntry.REVENUE_PREDICTED = oEntry.REVENUE_PREDICTED + iRevenuePredicted;
+                                    } else {
+                                        oEntry.REVENUE_PREDICTED = iRevenuePredicted;
+                                    }
                                 }
-                                console.log(sId,iRevenuePredicted); //TODO: remove debugging output
                                 
-                                /*
-                                jQuery.ajax( {
-                                     type:'GET',
-                                     url:'model/predict.xsjs' + '?year=' + y + '&month=' + m + '&sales_org=' + org + '&product_group=' + group,
-                                     success:function(data) {
-                                        let iRevenuePredicted = data;
-                                        let sId = y + "_" + m + "_" + org + "_" + group;
-                                        let sPath = "/SalesMonthProductGroup/" + sId;
-                                        let oEntry = this.oSalesModelLocal.getProperty(sPath);
-                                        if(!oEntry) {
-                                            oEntry = { "YEAR":y,
-                                                      "MONTH":m,
-                                                      "SALES_ORGANISATION":org,
-                                                      "PRODUCT_GROUP":group,
-                                                      "date": new Date(Date.UTC(y, m - 1, 1)),
-                                                      "REVENUE_PREDICTED": iRevenuePredicted,
-                                                      "CURRENCY":"" };
-                                            this.oSalesModelLocal.setProperty(sPath,oEntry);
-                                        } else {
-                                            oEntry.REVENUE_PREDICTED = iRevenuePredicted;
-                                        }
-                                        // call callback again, after read data is processed
-                                        callback();
-                                     }.bind(this)
-                                });
-                                */
+                                // sales year/month
+                                sId = y + "_" + m;
+                                sPath = "/SalesYearMonth/" + sId;
+                                oEntry = this.oSalesModelLocal.getProperty(sPath);
+                                if(!oEntry) {
+                                    oEntry = { "YEAR":y,
+                                               "MONTH":m,
+                                               "date": new Date(Date.UTC(y, m - 1, 1)),
+                                               "REVENUE_PREDICTED": iRevenuePredicted,
+                                               "CURRENCY":"" };
+                                    this.oSalesModelLocal.setProperty(sPath,oEntry);
+                                } else {
+                                    if(oEntry.REVENUE_PREDICTED) {
+                                        oEntry.REVENUE_PREDICTED = oEntry.REVENUE_PREDICTED + iRevenuePredicted;
+                                    } else {
+                                        oEntry.REVENUE_PREDICTED = iRevenuePredicted;
+                                    }
+                                }
+                                
+                                // sales month
+                                sId = m;
+                                sPath = "/SalesMonth/" + sId;
+                                oEntry = this.oSalesModelLocal.getProperty(sPath);
+                                if(!oEntry) {
+                                    oEntry = { "MONTH":m,
+                                               "REVENUE_PREDICTED": iRevenuePredicted,
+                                               "CURRENCY":"" };
+                                    this.oSalesModelLocal.setProperty(sPath,oEntry);
+                                } else {
+                                    if(oEntry.REVENUE_PREDICTED) {
+                                        oEntry.REVENUE_PREDICTED = oEntry.REVENUE_PREDICTED + iRevenuePredicted;
+                                    } else {
+                                        oEntry.REVENUE_PREDICTED = iRevenuePredicted;
+                                    }
+                                }
+                                
+                                // sales salesorg/prodgroup
+                                sId = org + "_" + group;
+                                sPath = "/SalesSalesOrgProdGroup/" + sId;
+                                oEntry = this.oSalesModelLocal.getProperty(sPath);
+                                if(!oEntry) {
+                                    oEntry = { "SALES_ORGANISATION":org,
+                                               "PRODUCT_GROUP":group,
+                                               "REVENUE_PREDICTED": iRevenuePredicted,
+                                               "CURRENCY":"" };
+                                    this.oSalesModelLocal.setProperty(sPath,oEntry);
+                                } else {
+                                    if(oEntry.REVENUE_PREDICTED) {
+                                        oEntry.REVENUE_PREDICTED = oEntry.REVENUE_PREDICTED + iRevenuePredicted;
+                                    } else {
+                                        oEntry.REVENUE_PREDICTED = iRevenuePredicted;
+                                    }
+                                }
+                                
                             }.bind(this);
                             while(iYear < iYearEnd2 || (iYear === iYearEnd2 && iMonth <= iMonthEnd2)) {
                                 loadPredictedData(JSON.parse(JSON.stringify(iYear)),
@@ -298,20 +332,86 @@ sap.ui.define([
                         let el = items[k];
                         if (typeof el !== 'function') {
                             
-                            let sId = el.YEAR + "_" + el.MONTH + "_" + el.SALES_ORGANISATION + "_" + el.PRODUCT_GROUP; 
-                            let sPath = "/SalesMonthProductGroup/" + sId;
-                            let oEntry = this.oSalesModelLocal.getProperty(sPath);
+                            let iRevenue = parseFloat(el.REVENUE);
+                            
+                            let sId, sPath, oEntry;
+                            
+                            // sales year/month/productgroup
+                            sId = el.YEAR + "_" + el.MONTH + "_" + el.SALES_ORGANISATION + "_" + el.PRODUCT_GROUP; 
+                            sPath = "/SalesYearMonthProductGroup/" + sId;
+                            oEntry = this.oSalesModelLocal.getProperty(sPath);
                             if(!oEntry) {
                                 oEntry = { "YEAR":el.YEAR,
-                                          "MONTH":el.MONTH,
-                                          "date":el.date,
-                                          "SALES_ORGANISATION":el.SALES_ORGANISATION,
-                                          "PRODUCT_GROUP":el.PRODUCT_GROUP,
-                                          "REVENUE":el.REVENUE,
-                                          "CURRENCY":el.CURRENCY };
+                                           "MONTH":el.MONTH,
+                                           "date":el.date,
+                                           "SALES_ORGANISATION":el.SALES_ORGANISATION,
+                                           "PRODUCT_GROUP":el.PRODUCT_GROUP,
+                                           "REVENUE":iRevenue,
+                                           "CURRENCY":el.CURRENCY };
                                 this.oSalesModelLocal.setProperty(sPath,oEntry);
                             } else {
-                                oEntry.REVENUE = el.REVENUE;
+                                if(oEntry.REVENUE) {
+                                    oEntry.REVENUE = oEntry.REVENUE + iRevenue;
+                                } else {
+                                    oEntry.REVENUE = iRevenue;
+                                }
+                                oEntry.CURRENCY = el.CURRENCY;
+                            }
+                            
+                            // sales year/month
+                            sId = el.YEAR + "_" + el.MONTH
+                            sPath = "/SalesYearMonth/" + sId;
+                            oEntry = this.oSalesModelLocal.getProperty(sPath);
+                            if(!oEntry) {
+                                oEntry = { "YEAR":el.YEAR,
+                                           "MONTH":el.MONTH,
+                                           "date":el.date,
+                                           "REVENUE":iRevenue,
+                                           "CURRENCY":el.CURRENCY };
+                                this.oSalesModelLocal.setProperty(sPath,oEntry);
+                            } else {
+                                if(oEntry.REVENUE) {
+                                    oEntry.REVENUE = oEntry.REVENUE + iRevenue;
+                                } else {
+                                    oEntry.REVENUE = iRevenue;
+                                }
+                                oEntry.CURRENCY = el.CURRENCY;
+                            }
+                            
+                            // sales month
+                            sId = el.MONTH
+                            sPath = "/SalesMonth/" + sId;
+                            oEntry = this.oSalesModelLocal.getProperty(sPath);
+                            if(!oEntry) {
+                                oEntry = { "MONTH":el.MONTH,
+                                           "REVENUE":iRevenue,
+                                           "CURRENCY":el.CURRENCY };
+                                this.oSalesModelLocal.setProperty(sPath,oEntry);
+                            } else {
+                                if(oEntry.REVENUE) {
+                                    oEntry.REVENUE = oEntry.REVENUE + iRevenue;
+                                } else {
+                                    oEntry.REVENUE = iRevenue;
+                                }
+                                oEntry.CURRENCY = el.CURRENCY;
+                            }
+                            
+                            // sales salesorg/prodgroup
+                            sId = el.SALES_ORGANISATION + "_" + el.PRODUCT_GROUP; 
+                            sPath = "/SalesSalesOrgProdGroup/" + sId;
+                            oEntry = this.oSalesModelLocal.getProperty(sPath);
+                            if(!oEntry) {
+                                oEntry = { "SALES_ORGANISATION":el.SALES_ORGANISATION,
+                                           "PRODUCT_GROUP":el.PRODUCT_GROUP,
+                                           "REVENUE":iRevenue,
+                                           "CURRENCY":el.CURRENCY };
+                                this.oSalesModelLocal.setProperty(sPath,oEntry);
+                            } else {
+                                if(oEntry.REVENUE) {
+                                    oEntry.REVENUE = oEntry.REVENUE + iRevenue;
+                                } else {
+                                    oEntry.REVENUE = iRevenue;
+                                }
                                 oEntry.CURRENCY = el.CURRENCY;
                             }
                         }
@@ -321,7 +421,10 @@ sap.ui.define([
 		  
     		    }.bind(this);
     		    
-                this.oSalesModelLocal.setProperty("/SalesMonthProductGroup",{});
+                this.oSalesModelLocal.setProperty("/SalesYearMonthProductGroup",{});
+                this.oSalesModelLocal.setProperty("/SalesYearMonth",{});
+                this.oSalesModelLocal.setProperty("/SalesMonth",{});
+                this.oSalesModelLocal.setProperty("/SalesSalesOrgProdGroup",{});
     		    
                 let mParams = {
                     success: processData,
@@ -330,6 +433,8 @@ sap.ui.define([
                   };
                 /* finally call read from sales cube */
                 this.oSalesModel.read("/SalesMonthProductGroup", mParams );
+		    } else {
+                this.oBusyDialog.close();
 		    }
 		},
 		
@@ -367,7 +472,7 @@ sap.ui.define([
                               value: '{REVENUE_PREDICTED}'
                             }],
                           data: {
-                            path: "/SalesMonthProductGroup"
+                            path: "/SalesSalesOrgProdGroup"
                           }
                         });
                         feedValues1 = new sap.viz.ui5.controls.common.feeds.FeedItem({
@@ -399,7 +504,7 @@ sap.ui.define([
                               value: '{REVENUE_PREDICTED}'
                             }],
                           data: {
-                            path: "/SalesMonthProductGroup"
+                            path: "/SalesMonth"
                           }
                         });
                         feedValues1 = new sap.viz.ui5.controls.common.feeds.FeedItem({
@@ -415,7 +520,7 @@ sap.ui.define([
                         break;
                         
                     case "timeseries_line":
-                        sVizTitle = i18n.getText("vizTitleLineChart");
+                        sVizTitle = i18n.getText("vizTitleTimeseries");
                         oDataset = new sap.viz.ui5.data.FlattenedDataset({
                           dimensions: [{
                             name: i18n.getText("Date"),
@@ -430,7 +535,7 @@ sap.ui.define([
                               value: '{REVENUE_PREDICTED}'
                             }],
                           data: {
-                            path: "/SalesMonthProductGroup"
+                            path: "/SalesYearMonth"
                           }
                         });
                         feedValues1 = new sap.viz.ui5.controls.common.feeds.FeedItem({

@@ -175,8 +175,12 @@ sap.ui.define([
                 filters: aFilter
               };
             this.oSalesModel.read("/SalesMonthProductGroup", mParams );  
+            let d = this.oModel.getProperty("/DateStart");
             let iYearStartPrediction = new Date().getFullYear();
-            if(this.oModel.getProperty("/DateStart").getFullYear() >= iYearStartPrediction) {
+            let iMonthStartPrediction = new Date().getMonth();
+            if(d.getFullYear() > iYearStartPrediction 
+              || ( d.getFullYear() === iYearStartPrediction 
+                && d >= iMonthStartPrediction )) {
                 this.readSalesDataPredicted(doReread);
             }
 		},

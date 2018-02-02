@@ -89,11 +89,11 @@
             		expandable="false"
             		class="sapUiNoContentPadding" >
             		<items>
-            			<IconTabFilter icon="sap-icon://vertical-bar-chart" text="{i18n>ChartColumn}" key="column" />
-            			<IconTabFilter icon="sap-icon://line-chart" text="{i18n>ChartLine}" key="line" />
             			<IconTabFilter icon="sap-icon://line-chart-time-axis" text="{i18n>ChartTimeseries}" key="timeseries_line" />
+            			<IconTabFilter icon="sap-icon://line-chart" text="{i18n>ChartLine}" key="line" />
+            			<IconTabFilter icon="sap-icon://vertical-bar-chart" text="{i18n>ChartColumn}" key="column" />
             			<IconTabFilter icon="sap-icon://table-chart" text="{i18n>ChartTable}" key="table" />
-            			<!--
+            			<!-- Additional interesting charts types: have to be configured in controller, too
             			<IconTabFilter icon="sap-icon://scatter-chart" text="Scatter" key="scatter" />
             			<IconTabFilter icon="sap-icon://scatter-chart" text="Scatter" key="timeseries_scatter" />
             			<IconTabFilter icon="sap-icon://bubble-chart" text="Bubble Chart" key="bubble" />
@@ -132,7 +132,7 @@
                 			    fixedLayout="false"
                         		growing="true"
                         		growingScrollToLoad="true"
-                				items="{sales2>/SalesMonthProductGroup}" >
+                				items="{sales2>/SalesYearMonthProductGroup}" >
                 				<columns>
                 					<Column hAlign="End">
                 						<Label text="{i18n>Year}" />

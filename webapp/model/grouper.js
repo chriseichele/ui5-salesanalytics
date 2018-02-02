@@ -4,6 +4,7 @@ sap.ui.define([], function() {
 	return {
 
 		getProductListGroup: function (oGroup){
+		    // grouper for product groups based on sales organisation
 		    let sTitle = oGroup.key;
 		    this.getSalesOrgText(oGroup.key, function(s){sTitle = s;});
 		    return new sap.m.GroupHeaderListItem( {

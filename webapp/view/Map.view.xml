@@ -129,14 +129,6 @@
 					                        		hotDeltaColor="RHLSA(0;1.1;1.0;1.0)" />
 											</vbm:Areas>
 										</vbm:vos>
-										
-										<!--
-				                        <vbm:geoJsonLayers>
-    				                        <vbm:GeoJsonLayer data="{mapSalesAreasData>/}" items="{mapSalesAreasData>features}" >
-    				                            <vbm:Feature featureId="{mapSalesAreasData>id}" color="rgba(92,186,30,0.6)" click="alert('click on feature');"/>
-    				                        </vbm:GeoJsonLayer>
-				                        </vbm:geoJsonLayers>
-			                            -->
 			                            
 									</vbm:GeoMap>
 								</vk:content>
@@ -154,10 +146,5 @@
 				</l:flexContent>
 			</l:FixFlex>
 		</f:content>
-		<f:footer>
-			<OverflowToolbar id="footerToolbar">
-				<ToolbarSpacer/>
-			</OverflowToolbar>
-		</f:footer>
 	</f:DynamicPage>
 </mvc:View>

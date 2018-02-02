@@ -12,6 +12,9 @@ sap.ui.define([
 		/* =========================================================== */
 
 		onInit: function() {
+		    // initialization of the view
+		    
+		    // define and set data models
             this.oModel = new JSONModel();
 			this.oModel.setData({"pageTitle": this.getResourceBundle().getText("predictViewTitle")});
 			this.oModel.setProperty("/ProductGroupList",{});
@@ -20,10 +23,12 @@ sap.ui.define([
             this.oSalesModelLocal = new JSONModel();
             this.setModel(this.oSalesModelLocal,"sales2");
             
+			// remember UI controls as controller variables
 		    this.oIconTabBarCharts = this.getView().byId("IconTabBarChartTypes");
 		    this.oSplitView = this.getView().byId("SplitView");
 		    this.oVizFrame = this.getView().byId("VizFrame");
             
+            // attach listeners to UI controls
 			this.getView().byId("detail").attachNavButtonPress(this._onNavBack, this);
 			this.getRouter().getRoute("predict").attachPatternMatched(this._onObjectMatched, this);
 			
@@ -32,27 +37,38 @@ sap.ui.define([
 				me._onTabSelect(oEvent, this);
 			});
 			
+			// define busy dialog, that can be activted, if data is loading
 			this.oBusyDialog = new sap.m.BusyDialog();
 		    
 		},
 
 		onExit : function () {
+		    // clean up on exit
 			if (this._oAddNewListItemDialog) {
 				this._oAddNewListItemDialog.destroy();
 			}
 			this.oModel = null;
 		},
+
+		/* =========================================================== */
+		/* routing stuff                                               */
+		/* =========================================================== */
 		
 		_onNavBack: function() {
+		    // nav back to left hand container in split view (only relevant on small screens)
 		    this.oSplitView.backMaster();
         },
 		
 		_onObjectMatched: function (oEvent) {
+		    // remember route arguments (because they are many)
 		    this.oRouteArguments = oEvent.getParameter("arguments");
+		    
+		    // set chart type
 		    let sKey = this.oRouteArguments.chartType;
 		    this.oIconTabBarCharts.setSelectedKey(sKey);
             this.oVizFrame.setVizType(this.oIconTabBarCharts.getSelectedKey());
             
+            // set dates for time interval pickers
             let iYearStart1 = parseInt(this.oRouteArguments.yearStart1, 10);
             let iMonthStart1 = parseInt(this.oRouteArguments.monthStart1, 10) - 1;
             let iYearEnd1 = parseInt(this.oRouteArguments.yearEnd1, 10);
@@ -74,6 +90,17 @@ sap.ui.define([
                 this.oModel.setProperty("/dateEnd2",new Date(Date.UTC(iYearEnd2, iMonthEnd2, 1)));
             }
             
+            // set expected market growth, if set
+            let iExpectedMarketGrowth = this.oRouteArguments.expectedMarketGrowth;
+            if(iExpectedMarketGrowth && iExpectedMarketGrowth != 0) {
+                this.oModel.setProperty("/expectedMarketGrowthOn",true);
+                this.oModel.setProperty("/expectedMarketGrowth",iExpectedMarketGrowth);
+            } else {
+                this.oModel.setProperty("/expectedMarketGrowthOn",false);
+                this.oModel.setProperty("/expectedMarketGrowth",0);
+            }
+            
+            // parse product groups array and set in list
             let sProductGroups = this.oRouteArguments.productGroups;
             if (sProductGroups) {
                 let aProductGroups = sProductGroups.split(",");
@@ -89,25 +116,54 @@ sap.ui.define([
                 }, this);
             }
 		    
-		    /* after route is processed: configure chart data to be displayed */
-            if(!this.getView().getParent().getParent().getBusy()) {
-                this.oBusyDialog.open();
-		    }
+		    // after route is processed: configure chart data to be displayed
+            this.oBusyDialog.open();
 		    this.configureChart();
 		},
 		
 		_onTabSelect: function (oEvent) {
+		    // change visualization on icon tab select
+		    // pause router, to prevent listener of firing reread of the selected data
 		    this.getRouter().stop();
 		    this.oRouteArguments.chartType = oEvent.getParameter("key");
 			if(oEvent.getParameter("key")) {
 				this.getRouter().navTo("predict", this.oRouteArguments, true);
 			}
+			// reconfigure chart without reread of data (filters have not changed)
 		    this.configureChart(false);
 		    window.setTimeout(function(){this.getRouter().initialize(true);}.bind(this), 1);
-		    //this.getRouter().initialize();
+		},
+		
+		addRouteProdGroupKey: function(sKey) {
+		    // add new product group to route (to keep bookmarkable link up to date)
+		    if(this.oRouteArguments.productGroups) {
+		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups + "," + sKey;
+		    } else {
+		        this.oRouteArguments.productGroups = sKey;
+		    }
+		    // update route without creating new entry in the browser history
+			this.getRouter().navTo("predict", this.oRouteArguments, true);
+		},
+		
+		removeRouteProdGroupKey: function(sKey) {
+		    // remove product group from route (to keep bookmarkable link up to date)
+		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace(sKey + ",", '');
+		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace("," + sKey, '');
+		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace(sKey, '');
+		    // update route without creating new entry in the browser history
+			this.getRouter().navTo("predict", this.oRouteArguments, true);
+		},
+		
+		onChangeMarketGrowth: function(oEvent) {
+		    // remember market growth in route (to keep bookmarkable link up to date)
+		    if(oEvent.getParameter("value")) {
+		        this.oRouteArguments.expectedMarketGrowth = oEvent.getParameter("value");
+			    this.getRouter().navTo("predict", this.oRouteArguments, true);
+		    }
 		},
 		
 		onDate1Select: function(oEvent) {
+		    // remember date range for existing data in route (to keep bookmarkable link up to date)
 		    if(oEvent.getParameter("from")) {
 		        this.oRouteArguments.yearStart1 = oEvent.getParameter("from").getFullYear();
 		        this.oRouteArguments.monthStart1 = oEvent.getParameter("from").getMonth() + 1;
@@ -120,6 +176,7 @@ sap.ui.define([
 		},
 		
 		onDate2Select: function(oEvent) {
+		    // remember date range for predicted data in route (to keep bookmarkable link up to date)
 		    if(oEvent.getParameter("from")) {
 		        this.oRouteArguments.yearStart2 = oEvent.getParameter("from").getFullYear();
 		        this.oRouteArguments.monthStart2 = oEvent.getParameter("from").getMonth() + 1;
@@ -131,8 +188,257 @@ sap.ui.define([
 			this.getRouter().navTo("predict", this.oRouteArguments, true);
 		},
 		
-		rereadSalesData: function(callback) {
+		onNavToDetail: function() {
+		    // display main content of splitter container (only relevant on small screens)
+		    this.oSplitView.toDetail(this.getView().byId("detail"));
+		},
+		
+		onToggleSettings: function() {
+		    // display side panel of splitter container (only relevant on medium size screens)
+			var oSplitContainer = this.getView().byId("settingsContainer");
+			oSplitContainer.setShowSecondaryContent(!oSplitContainer.getShowSecondaryContent());
+		},
+
+		/* =========================================================== */
+		/* handlers from view                                          */
+		/* =========================================================== */
+		
+		onSwitchChartType: function(oEvent) {
+		    // set new chart type in visulaization container
+		    let sKey = oEvent.getParameter("key");
+		    if(sKey !== "table") {
+		        this.oVizFrame.setVizType(sKey);
+		    }
+		},
+		
+		onAddNewListItemDialog: function() {
+		    // new product group button was pressed
+			if (!this._oAddNewListItemDialog) {
+			    // create select control for product groups
+			    let oSelectProductGroup = new sap.m.Select({
+					                id: 'selectProductGroup',
+					                width: '100%',
+					                name: 'group',
+					                forceSelection: false,
+					                items: []
+					            })
+					            .bindItems({
+                                    path: 'sales>/ProductGroups',
+            				        sorter: { path: 'PRODUCT_GROUP' },
+            				        template: new sap.ui.core.Item({
+            				            key: { path: 'sales>PRODUCT_GROUP' },
+            				            text: { path: 'sales>PRODUCT_GROUP', formatter: this.formatter.setEmptyText.bind(this) }
+            				        })
+            			        });
+			    // create select control for sales orgs
+			    let oSelectSalesOrg = new sap.m.Select({
+					                id: 'selectSalesOrg',
+					                width: '100%',
+					                name: 'salesorg',
+					                forceSelection: false
+					            })
+					            .bindItems({
+                                    path: 'sales>/SalesOrg',
+            				        sorter: { path: 'SHORT_TEXT' },
+            				        template: new sap.ui.core.Item({
+            				            key: { path: 'sales>SALES_ORGANISATION' },
+            				            text: { path: 'sales>SHORT_TEXT' }
+            				        }),
+            				        filters: [
+            				            new sap.ui.model.Filter("LANGU", sap.ui.model.FilterOperator.EQ, this.sLANGU, sap.ui.model.FilterType.Application)
+            				        ]
+            			        });
+		        // array of all input elements
+				let aInputs = [
+    				oSelectProductGroup,
+    				oSelectSalesOrg
+    			];
+    			// define cleanup function for these inputs
+    			let cleanupInputs = function() {
+        	        jQuery.each(aInputs, function (i, oInput) {
+                        oInput.setValueState(sap.ui.core.ValueState.None);
+                        oInput.setSelectedItem(null);
+        	        });
+    			}.bind(this);
+    			
+    			// create popup dialog control containing the select controls from above
+    			// (controls can be created also via javascript functions instead of xml views and fragments.
+    			//  this is more flexible but also more complex)
+				this._oAddNewListItemDialog = new sap.m.Dialog({
+					title: this.getResourceBundle().getText("addNewProductGroup"),
+					draggable: true,
+					stretch: jQuery.device.is.phone,
+					content: [
+					    new sap.ui.layout.VerticalLayout({
+					        width: '100%',
+					        content: [
+					            new sap.m.Label({
+					                text: this.getResourceBundle().getText("ProductGroup"),
+					                labelFor: 'selectProductGroup'
+					            }).addStyleClass("sapUiTinyMarginTop"),
+					            oSelectProductGroup,
+					            new sap.m.Label({
+					                text: this.getResourceBundle().getText("SalesOrg"),
+					                labelFor: 'selectSalesOrg'
+					            }).addStyleClass("sapUiTinyMarginTop"),
+					            oSelectSalesOrg
+					        ]
+					    }).addStyleClass("sapUiContentPadding")
+					],
+					buttons: [
+					    // action buttons in dialog
+						new sap.m.Button({
+							text : this.getResourceBundle().getText("save"),
+							icon: 'sap-icon://save',
+					        type: sap.m.ButtonType.Accept,
+							press : function() {
+							    // save button was pressed
+							    // validate inputs
+                    			let bValidationError = false;
+                    			// check that inputs are not empty
+                    			jQuery.each(aInputs, function (i, oInput) {
+                    				try {
+                    				    let oItem = oInput.getSelectedItem();
+                    					oItem.getKey();
+                    				} catch (oException) {
+                    					oInput.setValueState(sap.ui.core.ValueState.Error);
+                    					bValidationError = true;
+                    				}
+                    			});
+							    if(!bValidationError) {
+							        // if there was no error -> do save
+							        let sProdGroup = oSelectProductGroup.getSelectedItem().getKey();
+							        let sSalesOrg = oSelectSalesOrg.getSelectedItem().getKey();
+							        let sProdGroupKey = sProdGroup + "_" + sSalesOrg;
+							        let sPath = "/ProductGroupList/" + sProdGroupKey;
+							        // check if item at this path already exists in model
+							        if(this.oModel.getProperty(sPath)) {
+							            // we do not need redundant data!
+                						sap.m.MessageToast.show(this.getResourceBundle().getText("itemAlreadyExists"));
+							        } else {
+							            // yeah, finally we can add the new item to the model
+                                        this.oModel.setProperty(sPath,{
+                                            key: sProdGroup,
+                                            salesOrg: sSalesOrg
+                                        });
+                                        this.addRouteProdGroupKey(sProdGroupKey);
+                                        // sucess message
+                						sap.m.MessageToast.show(this.getResourceBundle().getText("itemAdded"));
+        								this._oAddNewListItemDialog.close();
+        								// only clean up product group and keep sales org (it is likely the user wants to add another prod group of this sales org)
+        								oSelectProductGroup.setSelectedItem(null);
+							        }
+							    }
+							}.bind(this)
+						}),
+						new sap.m.Button({
+							text : this.getResourceBundle().getText("cancel"),
+							icon: 'sap-icon://decline',
+					        type: sap.m.ButtonType.Reject,
+							press : function() {
+							    // cancel button pressed
+							    // cleanup inputs and close dialog
+								this._oAddNewListItemDialog.close();
+    							cleanupInputs();
+							}.bind(this)
+						})
+					],
+					escapeHandler: function(oPromise) {
+					    // user has clicked the escape keyboard button
+						if (!this._oAddNewListItemDialogConfirmEscape) {
+							this._oAddNewListItemDialogConfirmEscape = new sap.m.Dialog({
+							    // create confirm popup, to prevent closing by accident
+								icon : 'sap-icon://question-mark',
+								title : this.getResourceBundle().getText("confirmEscapeTitle"),
+								content : [
+									new sap.m.Text({
+										text : this.getResourceBundle().getText("confirmEscapeText")
+									})
+								],
+								type : sap.m.DialogType.Message,
+								buttons : [
+									new sap.m.Button({
+										text : this.getResourceBundle().getText("yes"),
+										press : function() {
+										    // yes, really close
+											this._oAddNewListItemDialogConfirmEscape.close();
+											oPromise.resolve();
+    								        cleanupInputs();
+										}.bind(this)
+									}),
+									new sap.m.Button({
+										text : this.getResourceBundle().getText("no"),
+										press : function() {
+										    // no, keep me inside the dialog
+											this._oAddNewListItemDialogConfirmEscape.close();
+											oPromise.reject();
+										}.bind(this)
+									})
+								]
+							});
+						}
+
+						this._oAddNewListItemDialogConfirmEscape.open();
+					}.bind(this)
+				});
+			}
+			// bind the data model to the dialog
+			this._oAddNewListItemDialog.setModel(this.getModel("sales"),"sales");
+			// finally open the dialog, so it can be rendered in the view
+			this._oAddNewListItemDialog.open();
+		},
+		
+		onDeleteSelectedListItem: function(oEvent) {
+		    // delete product group out of the list
+			let oList = oEvent.getSource(),
+				oItem = oEvent.getParameter("listItem");
 		    
+		    let sProdGroup = oItem.data("key");
+		    let sSalesOrg = oItem.data("salesorg");
+		    let sId = sProdGroup + "_" + sSalesOrg;
+		    
+		    // create popup dialog to ask first, if the user is really sure
+		    let oDialog = new sap.m.Dialog({
+				title: this.getResourceBundle().getText("confirmDeletionTitle"),
+				icon: 'sap-icon://delete',
+				type: sap.m.DialogType.Message,
+				content: new sap.m.Text({ text: this.getResourceBundle().getText("confirmDeletionText") }),
+				beginButton: new sap.m.Button({
+					text: this.getResourceBundle().getText("yes"),
+					type: sap.m.ButtonType.Default,
+					press: function () {
+			            // after deletion put the focus back to the list
+			            oList.attachEventOnce("updateFinished", oList.focus, oList);
+			            let oGroups = this.oModel.getProperty("/ProductGroupList");
+			            // delete out of model
+			            delete oGroups[sId];
+			            this.removeRouteProdGroupKey(sId);
+			            // refresh model, so the view is notified of the change and is rendered again
+			            this.oModel.refresh();
+						sap.m.MessageToast.show(this.getResourceBundle().getText("deletedSuccessfully"));
+						oDialog.close();
+					}.bind(this)
+				}),
+				endButton: new sap.m.Button({
+					text: this.getResourceBundle().getText("no"),
+					type: sap.m.ButtonType.Transparent,
+					press: function () {
+						oDialog.close();
+					}
+				}),
+				afterClose: function() {
+					oDialog.destroy();
+				}
+			});
+			oDialog.open();
+		},
+
+		/* =========================================================== */
+		/* help function                                               */
+		/* =========================================================== */
+		
+		rereadSalesData: function(callback) {
+		    // reread sales data from backend service
             this.oSalesModel = this.getModel("sales");
 		    this.oSalesModelLocal.oData = {};
             
@@ -146,7 +452,7 @@ sap.ui.define([
     		    let iMonthStart1 = ds1.getMonth() + 1;
     		    let iYearEnd1 = de1.getFullYear();
     		    let iMonthEnd1 = de1.getMonth() + 1;
-		    
+		        // build filter to handle only elements inside the ranges
     		    oFilterYears = new sap.ui.model.Filter({
                     filters: [
                         new sap.ui.model.Filter({
@@ -179,7 +485,8 @@ sap.ui.define([
                     and: true
                 });
 		    }
-                           
+            
+            // build filter allowing only the product groups out of the list               
 		    let oGroups = this.oModel.getProperty("/ProductGroupList");
 		    let oFilterProdGroups;
 		    if(JSON.stringify(oGroups) !== "{}") {
@@ -201,12 +508,14 @@ sap.ui.define([
                 oFilterProdGroups = new sap.ui.model.Filter({filters: aFilterProdGroups, and:false});
 		    }
 		    
+		    // set previously configured filter in filter array
 		    if(oFilterYears && oFilterProdGroups) {
 		        aFilter.push(new sap.ui.model.Filter({filters:[oFilterYears,oFilterProdGroups],and:true}));
 		    } else if(oFilterProdGroups && this.oModel.getProperty("/dateStart2") ) {
 		        aFilter.push(oFilterProdGroups);
 		    }
 		    
+		    // only if there are filter in the array, do the request
 		    if(aFilter.length > 0) {
 		        let readPredictedData = function() {
                     let sProductGroups = this.oRouteArguments.productGroups;
@@ -215,8 +524,15 @@ sap.ui.define([
                             let aKeys = sProdGroupSalesOrg.split("_");
                             let sProdGroup = aKeys[0];
                             let sSalesOrg = aKeys[1];
-                            /* now we have every product group sales org combination at this loop level */
-                            /* iterate over years and months */
+                            // now we have every product group sales org combination at this loop level
+                            // iterate over years and months
+                            
+                            let growthPercent
+                            if(this.oModel.getProperty("/expectedMarketGrowthOn")){
+                                growthPercent = this.oModel.getProperty("/expectedMarketGrowth") / 100;
+                            } else {
+                                growthPercent = 0
+                            }
                             let ds2 = this.oModel.getProperty("/dateStart2");
                             let de2 = this.oModel.getProperty("/dateEnd2");
                             let iYearStart2 = ds2.getFullYear();
@@ -225,10 +541,17 @@ sap.ui.define([
                             let iMonthEnd2 = de2.getMonth() + 1;
                             let iYear = iYearStart2;
                             let iMonth = iMonthStart2;
+                            
+                            // request data from the prediction service
                             let loadPredictedData = function(y,m,org,group){
                                 //TODO use asynchronous method, if service in backend is adjusted
                                 let oPredictModel = new JSONModel();
-                                oPredictModel.loadData('model/predict.xsjs' + '?year=' + y + '&month=' + m + '&sales_org=' + org + '&product_group=' + group, "", false);
+                                oPredictModel.loadData('model/predict.xsjs' + '?year=' + y 
+                                                                            + '&month=' + m 
+                                                                            + '&sales_org=' + org 
+                                                                            + '&product_group=' + group
+                                                                            + '&market_growth=' + growthPercent, "", false);
+                                // save returned predicted value on different aggregation levels for charts
                                 let iRevenuePredicted = parseFloat(oPredictModel.getData());
                                 let sId, sPath, oEntry;
                                 
@@ -308,6 +631,8 @@ sap.ui.define([
                                 }
                                 
                             }.bind(this);
+                            
+                            // loop over years and months and call the prediction method
                             while(iYear < iYearEnd2 || (iYear === iYearEnd2 && iMonth <= iMonthEnd2)) {
                                 loadPredictedData(JSON.parse(JSON.stringify(iYear)),
                                                   JSON.parse(JSON.stringify(iMonth)),
@@ -325,12 +650,15 @@ sap.ui.define([
                         }, this);
                     }
 		        }.bind(this);
+		        
+		        // process data of the sales odata service
     		    let processData = function(oData) {
 		            
                     let items = oData.results;
                     for(let k in items) {
                         let el = items[k];
                         if (typeof el !== 'function') {
+                            // save data on different aggregation levels for charts
                             
                             let iRevenue = parseFloat(el.REVENUE);
                             
@@ -417,10 +745,14 @@ sap.ui.define([
                         }
                     }
                     
+                    // read predicted data, after sales data was read
                     readPredictedData();
 		  
     		    }.bind(this);
     		    
+    		    // clear Data model propertys 
+    		    // be careful: propertys can only be created, if the previous elemnts in the path are existing
+    		    // deep paths cannot be created in one step and there is no error message, if it has not worked!
                 this.oSalesModelLocal.setProperty("/SalesYearMonthProductGroup",{});
                 this.oSalesModelLocal.setProperty("/SalesYearMonth",{});
                 this.oSalesModelLocal.setProperty("/SalesMonth",{});
@@ -431,25 +763,27 @@ sap.ui.define([
                     urlParameters: { '$select': 'YEAR,MONTH,date,SALES_ORGANISATION,PRODUCT_GROUP,REVENUE,CURRENCY' },
                     filters: aFilter
                   };
-                /* finally call read from sales cube */
+                // finally call read from sales cube
                 this.oSalesModel.read("/SalesMonthProductGroup", mParams );
 		    } else {
+		        // if no filter / no request, simply close the busy dialog and finish
                 this.oBusyDialog.close();
 		    }
 		},
 		
 		configureChart: function(rereadSalesData = true) {
-		    
+		    // configure chart control
             this.colorPalette = ["#5cbae6", "#b6d957", "#fac364"];
             this.colorPaletteManul = ['#5cbae6' , '#b6d957', '#fac364'];
             var chartContainer = this.getView().byId("ChartContainer");
             chartContainer.detachContentChange();
             
             let callback = function() {
-                // actual chart configuration
-                //TODO: add chart with aggregated values for multiple product groups
+                // actual chart configuration as callback after read of data
                 let oDataset, feedValues1, feedValues2, feedValues3, feedAxisLabels, sVizTitle;
                 let i18n = this.getResourceBundle();
+                // switch configuration based on chart type
+                // bind model and data to the axis
                 switch(this.oVizFrame.getVizType()) {
                     case "column":
                         sVizTitle = i18n.getText("vizTitleColumnChart");
@@ -472,7 +806,8 @@ sap.ui.define([
                               value: '{REVENUE_PREDICTED}'
                             }],
                           data: {
-                            path: "/SalesSalesOrgProdGroup"
+                            path: "/SalesSalesOrgProdGroup",
+                            sorter: [new sap.ui.model.Sorter("SALES_ORGANISATION", false, true),new sap.ui.model.Sorter("PRODUCT_GROUP", false, true)]
                           }
                         });
                         feedValues1 = new sap.viz.ui5.controls.common.feeds.FeedItem({
@@ -551,7 +886,7 @@ sap.ui.define([
                         break;
                 }
         
-                // -------- VizFrame ----------------
+                // set model and dataset to the viz frame and display chart
                 this.oVizFrame.setDataset(oDataset);
                 this.oVizFrame.setModel(this.oSalesModelLocal);
                 this.oVizFrame.destroyFeeds();
@@ -590,260 +925,31 @@ sap.ui.define([
                 this.chartPopover.setActionItems();
                 this.chartPopover.connect(this.oVizFrame.getVizUid());
                 
+                // done
                 this.oBusyDialog.close();
                 
             }.bind(this);
 		    
 		    if(this.oRouteArguments.chartType === "table") {
+		        // display table view instead of chart control
 		        this.getView().byId("chartBox").setVisible(false);
 		        this.getView().byId("tableBox").setVisible(true);
+		        // overwrite callback: on table view the chart does not need to be rendered
 		        callback = function(){this.oBusyDialog.close();}.bind(this);
 		    } else {
+		        // display chart control and hide table view
 		        this.getView().byId("chartBox").setVisible(true);
 		        this.getView().byId("tableBox").setVisible(false);
 		    }
             
             if(rereadSalesData) {
+                // reread sales data and then call chart configuration as callback
                 this.rereadSalesData(callback);
             } else {
+                // simply call chart configuration directly, without calling the reread first
                 callback();
             }
             
-		},
-
-		/* =========================================================== */
-		/* event handlers                                              */
-		/* =========================================================== */
-
-		
-		onNavToDetail: function() {
-		    this.oSplitView.toDetail(this.getView().byId("detail"));
-		},
-		
-		onToggleSettings: function() {
-			var oSplitContainer = this.getView().byId("settingsContainer");
-			oSplitContainer.setShowSecondaryContent(!oSplitContainer.getShowSecondaryContent());
-		},
-		
-		onSwitchChartType: function(oEvent) {
-		    let sKey = oEvent.getParameter("key");
-		    if(sKey !== "table") {
-		        this.oVizFrame.setVizType(sKey);
-		    }
-		},
-		
-		onAddNewListItemDialog: function() {
-		    
-			if (!this._oAddNewListItemDialog) {
-			    let oSelectProductGroup = new sap.m.Select({
-					                id: 'selectProductGroup',
-					                width: '100%',
-					                name: 'group',
-					                forceSelection: false,
-					                items: []
-					            })
-					            .bindItems({
-                                    path: 'sales>/ProductGroups',
-            				        sorter: { path: 'PRODUCT_GROUP' },
-            				        template: new sap.ui.core.Item({
-            				            key: { path: 'sales>PRODUCT_GROUP' },
-            				            text: { path: 'sales>PRODUCT_GROUP', formatter: this.formatter.setEmptyText.bind(this) }
-            				        })
-            			        });
-			    let oSelectSalesOrg = new sap.m.Select({
-					                id: 'selectSalesOrg',
-					                width: '100%',
-					                name: 'salesorg',
-					                forceSelection: false
-					            })
-					            .bindItems({
-                                    path: 'sales>/SalesOrg',
-            				        sorter: { path: 'SHORT_TEXT' },
-            				        template: new sap.ui.core.Item({
-            				            key: { path: 'sales>SALES_ORGANISATION' },
-            				            text: { path: 'sales>SHORT_TEXT' }
-            				        }),
-            				        filters: [
-            				            new sap.ui.model.Filter("LANGU", sap.ui.model.FilterOperator.EQ, this.sLANGU, sap.ui.model.FilterType.Application)
-            				        ]
-            			        });
-		    
-				let aInputs = [
-    				oSelectProductGroup,
-    				oSelectSalesOrg
-    			];
-    			let cleanupInputs = function() {
-        	        jQuery.each(aInputs, function (i, oInput) {
-                        oInput.setValueState(sap.ui.core.ValueState.None);
-                        oInput.setSelectedItem(null);
-        	        });
-    			}.bind(this);
-				this._oAddNewListItemDialog = new sap.m.Dialog({
-					title: this.getResourceBundle().getText("addNewProductGroup"),
-					draggable: true,
-					stretch: jQuery.device.is.phone,
-					content: [
-					    new sap.ui.layout.VerticalLayout({
-					        width: '100%',
-					        content: [
-					            new sap.m.Label({
-					                text: this.getResourceBundle().getText("ProductGroup"),
-					                labelFor: 'selectProductGroup'
-					            }).addStyleClass("sapUiTinyMarginTop"),
-					            oSelectProductGroup,
-					            new sap.m.Label({
-					                text: this.getResourceBundle().getText("SalesOrg"),
-					                labelFor: 'selectSalesOrg'
-					            }).addStyleClass("sapUiTinyMarginTop"),
-					            oSelectSalesOrg
-					        ]
-					    }).addStyleClass("sapUiContentPadding")
-					],
-					buttons: [
-						new sap.m.Button({
-							text : this.getResourceBundle().getText("save"),
-							icon: 'sap-icon://save',
-					        type: sap.m.ButtonType.Accept,
-							press : function() {
-							    /* validate inputs */
-                    			let bValidationError = false;
-                    			// check that inputs are not empty
-                    			jQuery.each(aInputs, function (i, oInput) {
-                    				try {
-                    				    let oItem = oInput.getSelectedItem();
-                    					oItem.getKey();
-                    				} catch (oException) {
-                    					oInput.setValueState(sap.ui.core.ValueState.Error);
-                    					bValidationError = true;
-                    				}
-                    			});
-							    if(!bValidationError) {
-							        let sProdGroup = oSelectProductGroup.getSelectedItem().getKey();
-							        let sSalesOrg = oSelectSalesOrg.getSelectedItem().getKey();
-							        let sProdGroupKey = sProdGroup + "_" + sSalesOrg;
-							        let sPath = "/ProductGroupList/" + sProdGroupKey;
-							        if(this.oModel.getProperty(sPath)) {
-                						sap.m.MessageToast.show(this.getResourceBundle().getText("itemAlreadyExists"));
-							        } else {
-                                        this.oModel.setProperty(sPath,{
-                                            key: sProdGroup,
-                                            salesOrg: sSalesOrg
-                                        });
-                                        this.addRouteProdGroupKey(sProdGroupKey);
-                						sap.m.MessageToast.show(this.getResourceBundle().getText("itemAdded"));
-        								this._oAddNewListItemDialog.close();
-        								//cleanupInputs();
-        								oSelectProductGroup.setSelectedItem(null);
-							        }
-							    }
-							}.bind(this)
-						}),
-						new sap.m.Button({
-							text : this.getResourceBundle().getText("cancel"),
-							icon: 'sap-icon://decline',
-					        type: sap.m.ButtonType.Reject,
-							press : function() {
-								this._oAddNewListItemDialog.close();
-    							cleanupInputs();
-							}.bind(this)
-						})
-					],
-					escapeHandler: function(oPromise) {
-						if (!this._oAddNewListItemDialogConfirmEscape) {
-							this._oAddNewListItemDialogConfirmEscape = new sap.m.Dialog({
-								icon : 'sap-icon://question-mark',
-								title : this.getResourceBundle().getText("confirmEscapeTitle"),
-								content : [
-									new sap.m.Text({
-										text : this.getResourceBundle().getText("confirmEscapeText")
-									})
-								],
-								type : sap.m.DialogType.Message,
-								buttons : [
-									new sap.m.Button({
-										text : this.getResourceBundle().getText("yes"),
-										press : function() {
-											this._oAddNewListItemDialogConfirmEscape.close();
-											oPromise.resolve();
-    								        cleanupInputs();
-										}.bind(this)
-									}),
-									new sap.m.Button({
-										text : this.getResourceBundle().getText("no"),
-										press : function() {
-											this._oAddNewListItemDialogConfirmEscape.close();
-											oPromise.reject();
-										}.bind(this)
-									})
-								]
-							});
-						}
-
-						this._oAddNewListItemDialogConfirmEscape.open();
-					}.bind(this)
-				});
-			}
-			this._oAddNewListItemDialog.setModel(this.getModel("sales"),"sales");
-			this._oAddNewListItemDialog.open();
-		},
-		
-		onDeleteSelectedListItem: function(oEvent) {
-		    
-			let oList = oEvent.getSource(),
-				oItem = oEvent.getParameter("listItem");
-		    
-		    let sProdGroup = oItem.data("key");
-		    let sSalesOrg = oItem.data("salesorg");
-		    let sId = sProdGroup + "_" + sSalesOrg;
-		    
-		    let oDialog = new sap.m.Dialog({
-				title: this.getResourceBundle().getText("confirmDeletionTitle"),
-				icon: 'sap-icon://delete',
-				type: sap.m.DialogType.Message,
-				content: new sap.m.Text({ text: this.getResourceBundle().getText("confirmDeletionText") }),
-				beginButton: new sap.m.Button({
-					text: this.getResourceBundle().getText("yes"),
-					type: sap.m.ButtonType.Default,
-					press: function () {
-			            // after deletion put the focus back to the list
-			            oList.attachEventOnce("updateFinished", oList.focus, oList);
-			            // send a delete request to the odata service
-			            let oGroups = this.oModel.getProperty("/ProductGroupList");
-			            delete oGroups[sId];
-			            this.removeRouteProdGroupKey(sId);
-			            this.oModel.refresh();
-						sap.m.MessageToast.show(this.getResourceBundle().getText("deletedSuccessfully"));
-						oDialog.close();
-					}.bind(this)
-				}),
-				endButton: new sap.m.Button({
-					text: this.getResourceBundle().getText("no"),
-					type: sap.m.ButtonType.Transparent,
-					press: function () {
-						oDialog.close();
-					}
-				}),
-				afterClose: function() {
-					oDialog.destroy();
-				}
-			});
-			oDialog.open();
-		},
-		
-		addRouteProdGroupKey: function(sKey) {
-		    if(this.oRouteArguments.productGroups) {
-		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups + "," + sKey;
-		    } else {
-		        this.oRouteArguments.productGroups = sKey;
-		    }
-			this.getRouter().navTo("predict", this.oRouteArguments, true);
-		},
-		
-		removeRouteProdGroupKey: function(sKey) {
-		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace(sKey + ",", '');
-		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace("," + sKey, '');
-		    this.oRouteArguments.productGroups = this.oRouteArguments.productGroups.replace(sKey, '');
-			this.getRouter().navTo("predict", this.oRouteArguments, true);
 		}
 
 	});

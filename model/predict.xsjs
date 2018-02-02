@@ -6,10 +6,20 @@ function createEntryOrg(rs) {
 		};
 }
 
+function CalcualtePerformance(perc, year){
+    var res = 1;
+    for (var i = 2011; i < year; i++){
+        res = res*(1+perc);
+    }
+    return res;
+}
+
 var param1 = $.request.parameters.get('year');
 var param2 = $.request.parameters.get('month');
 var param3_Strg = $.request.parameters.get('sales_org');
 var param4_Strg = $.request.parameters.get('product_group');
+var param5= parseFloat($.request.parameters.get('market_growth'));
+
 
 try {
     var conn = $.db.getConnection();
@@ -37,7 +47,7 @@ try {
 try {
     conn = $.db.getConnection();
 
-	pstmt = conn.prepareStatement("DELETE FROM \"GBI_005\".\"PAL_FER_PREDICTDATA_TBL\";");
+	pstmt = conn.prepareStatement("DELETE FROM \"GBI_005\".\"PAL_FPR_PREDICTDATA_TBL\";");
 	pstmt.execute();
 	conn.commit();
 	pstmt.close();
@@ -48,35 +58,41 @@ try {
     output.data = [];
     conn = $.db.getConnection();
     conn.prepareStatement("SET SCHEMA \"GBI_005\"").execute();
-    var st = conn.prepareStatement("INSERT INTO \"PAL_FER_PREDICTDATA_TBL\" values(0,?,?,?,?)");
-    st.setString(1,param1);
-    st.setString(2,param2);
-    st.setString(3,param3);
-    st.setString(4,param4);
+    var st = conn.prepareStatement("INSERT INTO \"PAL_FPR_PREDICTDATA_TBL\" values(0,?)");
+    //st.setString(1,param1);
+    st.setString(1,param2);
+    //st.setString(2,param3);
+    //st.setString(3,param4);
     st.execute();
     conn.commit();
     var record = [];
-    record.push(param1);
+    //record.push(param1);
     record.push(param2);
-    record.push(param3);
-    record.push(param4);
+    //record.push(param3);
+    //record.push(param4);
     output.data.push(record);
     conn.close();
 
-	query = "CALL \"GBI_005\".\"PAL_FORECAST_EXPR_PROC\"(\"GBI_005\".\"PAL_FER_PREDICTDATA_TBL\", \"GBI_005\".\"PAL_ER_RESULTS_TBL\", \"GBI_005\".\"PAL_CONTROL_TBL\", \"GBI_005\".\"PAL_FER_FITTED_TBL\") with overview;";
+	query = "CALL \"GBI_005\".\"PAL_FORECAST_POLYNOMIALR_PROC\"(\"GBI_005\".\"PAL_FPR_PREDICTDATA_TBL\", \"GBI_005\".\"PAL_PR_RESULTS_TBL_" + param4 + "_" + param3 + "\", \"GBI_005\".\"PAL_CONTROL_TBL\", \"GBI_005\".\"PAL_FPR_FITTED_TBL\") with overview;";
 	conn = $.db.getConnection();
 
 	pstmt = conn.prepareCall(query);
 	pstmt.execute();
 	
-    query = 'SELECT * FROM "GBI_005"."PAL_FER_FITTED_TBL";';
+    query = 'SELECT * FROM "GBI_005"."PAL_FPR_FITTED_TBL";';
 	
 	pstmt = conn.prepareStatement(query);
 	rs = pstmt.executeQuery();
 	
 	rs.next();
 	var result = rs.getDouble(2);
-
+    
+    if (result < 0){
+        result = 0;
+    } else {
+        result =result*CalcualtePerformance(param5, param1);
+    }
+    
 	rs.close();
 	pstmt.close();
 	conn.close();

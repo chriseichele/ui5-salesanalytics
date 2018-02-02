@@ -16,10 +16,12 @@ sap.ui.define([], function() {
 		},
 		
 		canShareNative: function() {
+		    // checks if native share function is active (common on mobile devices)
 		    return !!navigator && !!navigator.share;
 		},
 		
 		month: function(iMonth) {
+		    // returns month string based on month number (1-12)
 		    let locale = sap.ui.getCore().getConfiguration().getLanguage();
 		    let d = new Date();
 		    d.setMonth(iMonth - 1);
@@ -27,19 +29,23 @@ sap.ui.define([], function() {
 		},
 		
 		formatDateYearMonth : function(v) {
+		    // format date with month text and full year
             var oDateFormat = sap.ui.core.format.DateFormat.getDateTimeInstance({pattern: "MMM YYYY"});
             return oDateFormat.format(new Date(v));
 		},
 		
 		salesOrg: function(sKey) {
+		    // return sales organisation text
 		    let sTitle = sKey;
 		    if(this.getSalesOrgText) {
+		        // function is configured in base controller
 		        this.getSalesOrgText(sKey, function(s){sTitle = s;});
 		    }
 		    return sTitle;
 		},
 		
 		setEmptyText: function(sText) {
+		    // return text to display instead of empty value
 		    if(!sText || sText === "0") {
 		        return this.getResourceBundle().getText("unclassified");
 		    } else {
@@ -48,9 +54,11 @@ sap.ui.define([], function() {
 		},
 		
 		revenueColor: function(iRevenue, bPredicted) {
+		    // set color based on revenue
+		    // different colors for predicted and existing values
             let iRevenueMin = this.oModel.getProperty("/Legend/Revenue/Min");
-		    /* set color based on revenue */
             let iRevenueCurrentAboveMin = iRevenue - iRevenueMin;
+            // get color for revenue category
             switch (true) {
               case (iRevenueCurrentAboveMin < this.oModel.getProperty("/Legend/Revenue/1")):
                 if(!bPredicted) {

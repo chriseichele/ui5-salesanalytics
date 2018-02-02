@@ -18,6 +18,32 @@
         			<Button icon="sap-icon://navigation-right-arrow" press="onNavToDetail" visible="{= !!${device>/system/phone} }" />
         		</headerContent>
         	    <content>
+				    <custom:Panel headerText="{i18n>parameters}" expandable="true" expanded="true" >
+				        <custom:content>
+				            <VBox class="sapUiSmallMarginBottom">
+    				            <Label text="{i18n>expectedMarketGrowth}" class="sapUiTinyMarginBottom" />
+				                <HBox>
+                    				<Switch state="{/expectedMarketGrowthOn}" customTextOn="{i18n>yes}" customTextOff="{i18n>no}">
+                    					<layoutData>
+                    						<FlexItemData growFactor="1" />
+                    					</layoutData>
+                    				</Switch>
+                                    <StepInput
+                                        id="inputExpectedMarketGrowth"
+                                        value="{/expectedMarketGrowth}"
+                                        displayValuePrecision="1"
+                                        min="-100"
+                                        max="100"
+                                        width="{width}"
+                                        step="0.1"
+                                        largerStep="1"
+                                        valueState="{valueState}"
+                                        editable="{/expectedMarketGrowthOn}"
+                                        change="onChangeMarketGrowth"/>
+                				</HBox>
+					        </VBox>
+                        </custom:content>
+                    </custom:Panel>
 				    <custom:Panel headerText="{i18n>timeframe}" expandable="true" expanded="true" >
 				        <custom:content>
 				            <VBox class="sapUiSmallMarginBottom">

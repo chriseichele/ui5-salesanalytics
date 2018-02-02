@@ -3,21 +3,8 @@ sap.ui.define([
 		"sap/ui/Device",
 		"de/tum/in/i17/leonardo/ws1718/salesanalytics/model/models",
 		"de/tum/in/i17/leonardo/ws1718/salesanalytics/controller/ErrorHandler"
-
-			], function (UIComponent, Device, models, ErrorHandler) {
+], function (UIComponent, Device, models, ErrorHandler) {
     "use strict";
-
-    /*
-    var navigationWithContext = {
-        "SalesOrderSet": {
-            "sales_order": "",
-            "item_details": "SalesOrderItems"
-        },
-        "SalesOrderItemSet": {
-            "item_details": ""
-        }
-    };
-    */
 
     return UIComponent.extend("de.tum.in.i17.leonardo.ws1718.salesanalytics.Component", {
 
@@ -39,11 +26,6 @@ sap.ui.define([
             this.setModel(models.createDeviceModel(), "device");
             // set the FLP model
             this.setModel(models.createFLPModel(), "FLP");
-
-            // set the dataSource model
-            this.setModel(new sap.ui.model.json.JSONModel({
-                "uri": "/gbi-student-006/SalesDataAnalytics/model/sales.xsodata"
-            }), "dataSource");
 
             // set application model
             var oApplicationModel = new sap.ui.model.json.JSONModel({});

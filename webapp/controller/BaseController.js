@@ -9,9 +9,11 @@ sap.ui.define([
 
     return Controller.extend("de.tum.in.i17.leonardo.ws1718.salesanalytics.controller.BaseController", {
         
+        // include formatter and grouper help functions to make them available everywhere
         formatter: formatter,
         grouper: grouper,
         
+        // store current language as character, like it is used in the backend system
         sLANGU: sap.ui.getCore().getConfiguration().getLanguage().toUpperCase().substring(0,1),
         
         /**

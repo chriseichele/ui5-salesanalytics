@@ -1,3 +1,5 @@
+/* CUSTOM CSS DEFINITIONS */
+
 .mapLayerSelectedText, 
 .mapLayerPopoverItemText { 
     /* hide texts in maplayer select */
@@ -5,6 +7,7 @@
 }
 
 .noPadding {
+    /* class to overwrite very stubborn paddings */
     padding: 0 !important;
 }
 

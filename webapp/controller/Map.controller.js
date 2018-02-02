@@ -11,24 +11,27 @@ sap.ui.define([
 		/* lifecycle methods                                           */
 		/* =========================================================== */
 
-		/**
-		 * Called when the master list controller is instantiated. It sets up the event handling for the master/detail communication and other lifecycle tasks.
-		 * @public
-		 */
 		onInit: function() {
+		    // initialization of the view
+		    
+		    // define and set data models
             this.oModel = new JSONModel();
 			this.oModel.setData({"pageTitle": this.getResourceBundle().getText("mapViewTitle")});
             this.setModel(this.oModel);
 
+			// remember UI controls as controller variables
 			this.oSliderTimeframe = this.getSelect("slTimeframe");
 			this.oSelectSalesOrg = this.getSelect("slSalesOrganisation");
 			this.oSelectProductGroup = this.getSelect("slProductGroup");
 		    
 			this.oModel.setProperty("/Filter", { "text" : this.getFormattedSummaryText([]) });
+			// add label, that is displayed if dynamic page header is collapsed
 			this.addSnappedLabel();
 			
+			// define busy dialog, that can be activted, if data is loading
 			this.oBusyDialog = new sap.m.BusyDialog();
 			
+		    // define colors for map legend
 		    this.oModel.setProperty("/Legend",{"Color":{"Now":{
 		                                                "1":"rgba(175, 223, 255, 0.8)",
 		                                                "2":"rgba(132, 185, 231, 0.8)",
@@ -41,48 +44,56 @@ sap.ui.define([
 		                                                "4":"rgba(50, 180, 50, 0.8)",
 		                                                "5":"rgba(0, 150, 20, 0.8)"} } } );
             
-			/* init time slider */
+			// init time slider
 			this.configureTimePicker();
             
-            /* configure geo map */
+            // configure geo map
 			this.configureGeoMap();
 			
+			// handle routing parameters
 			this.getRouter().getRoute("map").attachPatternMatched(this._onObjectMatched, this);
 		},
 		
 		onAfterRendering : function() {
+		    // rendering is done and data binding from the xml-view is processed
 		    
+			// configuration of sales data for map
 			this.configureMapSalesData();
 		    
-		    /* filter select on language */
+		    // filter select on language to display only elemnts in current language
 			this.oSelectSalesOrg.getBinding("items").filter(
 			    new sap.ui.model.Filter("LANGU", sap.ui.model.FilterOperator.EQ, this.sLANGU, sap.ui.model.FilterType.Application));
 		    
-		    /* watch map layer change */
+		    // watch map layer change to set routing parameter
 		    let domCurrentMapLayer = document.getElementsByClassName("mapLayerSelectedText")[0];
 		    domCurrentMapLayer.addEventListener('DOMSubtreeModified', function(){ 
 		        this.updateCurrentRoute();
             }.bind(this));
 		    
-		    /* initialize Filters */
+		    // initialize Filters
 		    this.aKeys = [];
 		    this.getView().byId("FilterBar").getFilterItems().forEach(function(filter){
 		        this.aKeys.push(filter.getLabel());
 		    }, this);
-			/* do first filtering */
+			// do first filtering
 			this.doFilterMap();
 		},
 
 		onExit : function () {
+		    // clean up on exit
 			if (this._oPopover) {
 				this._oPopover.destroy();
 			}
-			
 			this.oModel = null;
 			this.aKeys = [];
 		},
+
+		/* =========================================================== */
+		/* parse routing parameters                                    */
+		/* =========================================================== */
 		
 		_onObjectMatched: function (oEvent) {
+		    // get curren map layer
 		    let sMapType = oEvent.getParameter("arguments").mapType;
 		    if(sMapType) {
 		        let oMapConfig = this.oGeoMap.getMapConfiguration();
@@ -91,6 +102,7 @@ sap.ui.define([
 		        }
 		    }
 			
+			// parse date for timeline (and make sure it is plausible)
 			let iYear = oEvent.getParameter("arguments").year;
 		    if(iYear) {
 		        
@@ -126,6 +138,10 @@ sap.ui.define([
 		        this.oModel.setProperty("/DateStart",d);
 		    }
 		},
+
+		/* =========================================================== */
+		/* handlers from view                                          */
+		/* =========================================================== */
 		
 		onToggleHeader: function () {
 			this.getPage().setHeaderExpanded(!this.getPage().getHeaderExpanded());
@@ -155,11 +171,23 @@ sap.ui.define([
 			this.updateCurrentRoute();
 		},
 		
+		onMonthChange: function() {
+		    let oDateRange = this.oSliderTimeframe.getSelectedDates().pop();
+		    let d = oDateRange.getStartDate();
+		    this.oModel.setProperty("/DateStart",d);
+		},
+
+		/* =========================================================== */
+		/* help function                                               */
+		/* =========================================================== */
+		
 		readSalesData: function(doReread) {
 		    if(doReread) {
+		        // clear data model and reread all
 		        this.oSalesModelLocal.oData = {};
 		    }
 		    
+		    // define filter objects based on filter controls from view to filter the selected data
 		    let aFilter = [ new sap.ui.model.Filter("YEAR", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getFullYear()),
                            new sap.ui.model.Filter("MONTH", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getMonth() + 1) ];
 		    this.oSelectProductGroup.getSelectedItems().forEach(function(el){
@@ -169,15 +197,18 @@ sap.ui.define([
 		        }
 		    });
 		    
+		    // reread sales data and process in callback
             let mParams = {
                 success: this.transformSalesModel.bind(this),
                 urlParameters: { '$select': 'YEAR,MONTH,SALES_ORGANISATION,PRODUCT_GROUP,SHAPE,REVENUE,CURRENCY' },
                 filters: aFilter
               };
             this.oSalesModel.read("/SalesMonthProductGroup", mParams );  
+            
+            // reread predicted sales data (starting from 2012, because there are no sample data any more)
             let d = this.oModel.getProperty("/DateStart");
-            let iYearStartPrediction = new Date().getFullYear();
-            let iMonthStartPrediction = new Date().getMonth();
+            let iYearStartPrediction = 2012; //new Date().getFullYear();
+            let iMonthStartPrediction = 0;//new Date().getMonth();
             if(d.getFullYear() > iYearStartPrediction 
               || ( d.getFullYear() === iYearStartPrediction 
                 && d >= iMonthStartPrediction )) {
@@ -187,6 +218,7 @@ sap.ui.define([
 		
 		readSalesDataPredicted: function(doReread) {
 		    if(doReread) {
+		        // clear data model and reread all
 		        this.oSalesModelPredict.oData = {};
 		    }
 		    
@@ -201,6 +233,7 @@ sap.ui.define([
 		        this.oBusyDialog.close();
 		    }.bind(this);
 		    
+		    // handler for sales org data
 		    let processResponseSalesOrg = function(oDataSalesOrg) {
 		        
 		        let salesOrgs = oDataSalesOrg.results;
@@ -239,6 +272,7 @@ sap.ui.define([
     		        }
     		    });
 		    
+		        // handler for product group data
     		    let processResponseProdGroup = function(oDataProdGroups) {
     		        let prodGroups = oDataProdGroups.results;
     		        // loop over sales orgs
@@ -258,10 +292,12 @@ sap.ui.define([
                                         
                                         //TODO use asynchronous method, if service in backend is adjusted
                                         let oPredictModel = new JSONModel();
+                                        // read predicted revenue for this product group/salesorg combination
                                         oPredictModel.loadData('model/predict.xsjs' + '?year=' + iYear 
                                                                                     + '&month=' + iMonth 
                                                                                     + '&sales_org=' + salesOrgs[k].SALES_ORGANISATION 
-                                                                                    + '&product_group=' + prodGroups[p].PRODUCT_GROUP, "", false);
+                                                                                    + '&product_group=' + prodGroups[p].PRODUCT_GROUP
+                                                                                    + '&market_growth=0', "", false);
                                         let iRevenuePredicted = oPredictModel.getData();
                                         if(!iRevenuePredicted || isNaN(iRevenuePredicted) ) {
                                             iRevenuePredicted = 0;
@@ -270,8 +306,9 @@ sap.ui.define([
                                         oProductGroup = { "PRODUCT_GROUP":prodGroups[p].PRODUCT_GROUP,
                                                           "REVENUE":iRevenuePredicted,
                                                           "CURRENCY":oSalesOrg.CURRENCY };
+                                        // set property in model to save data for data binding
                                         this.oSalesModelPredict.setProperty(sPath,oProductGroup);
-                                        
+                                        // sum for sales org
                                         oSalesOrg.REVENUE = parseFloat(oSalesOrg.REVENUE) + parseFloat(iRevenuePredicted);
                                         
                                     }
@@ -283,6 +320,7 @@ sap.ui.define([
     		        
                     finished();
     		    }.bind(this);
+    		    // read all product groups
                 this.oSalesModel.read("/ProductGroups", {
                     success: processResponseProdGroup,
                     error: finished,
@@ -290,6 +328,7 @@ sap.ui.define([
                   } ); 
 		        
 		    }.bind(this);
+		    // read all sales orgs
             this.oSalesModel.read("/SalesMonthProductGroup", {
                 success: processResponseSalesOrg,
                 error: finished,
@@ -297,15 +336,85 @@ sap.ui.define([
               } );  
 		},
 		
-		onMonthChange: function() {
-		    let oDateRange = this.oSliderTimeframe.getSelectedDates().pop();
-		    let d = oDateRange.getStartDate();
-		    this.oModel.setProperty("/DateStart",d);
-		    //this.oModel.setProperty("/DateEnd",oDateRange.getEndDate());
-			//sap.m.MessageToast.show(oDateRange.getStartDate() + " - " + oDateRange.getEndDate());
-		},
+		transformSalesModel: function(oData) {
+		    // proccess sales data
+		    // build deep model and set product groups in array for each salesorg
+                
+            let iRevenueMin = this.oModel.getProperty("/Legend/Revenue/Min");
+            let iRevenueMax = this.oModel.getProperty("/Legend/Revenue/Max");
+            let iRevenueSteps = (iRevenueMax - iRevenueMin) / 4;
+            this.oModel.setProperty("/Legend/Revenue/1",iRevenueSteps * 1);
+            this.oModel.setProperty("/Legend/Revenue/2",iRevenueSteps * 2);
+            this.oModel.setProperty("/Legend/Revenue/3",iRevenueSteps * 3);
+            this.oModel.setProperty("/Legend/Revenue/4",iRevenueSteps * 4);
+            
+            let items = oData.results;
+            for(let k in items) {
+                if (typeof items[k] !== 'function') {
+                    if (items[k].__metadata.uri.includes("SalesMonthProductGroup")) {
+                        
+                        // set aggregated items on month base
+                        
+                        let sPath = "/SalesMonth";
+                        if(!this.oSalesModelLocal.getProperty(sPath)) {
+                            this.oSalesModelLocal.setProperty(sPath,{});
+                        }
+                        sPath = sPath + "/" + items[k].SALES_ORGANISATION + "_" + items[k].YEAR + "_" + items[k].MONTH;
+                        let oSalesOrg = this.oSalesModelLocal.getProperty(sPath);
+                        if(!oSalesOrg) {
+                            oSalesOrg = { "YEAR":items[k].YEAR,
+                                          "MONTH":items[k].MONTH,
+                                          "SALES_ORGANISATION":items[k].SALES_ORGANISATION,
+                                          "REVENUE":0,
+                                          "CURRENCY":items[k].CURRENCY,
+                                          "tooltip": items[k].SALES_ORGANISATION,
+                                          "ProductGroups":{} };
+                            this.oSalesModelLocal.setProperty(sPath,oSalesOrg);
+                            
+                            // read text
+                            this.getSalesOrgText(items[k].SALES_ORGANISATION, function(s){oSalesOrg.tooltip = s;});
+                            
+                            // create geo shape to display in map
+                            oSalesOrg.position = this.parseGeoShape(items[k].SHAPE);
+                        }
+                        
+                        sPath = sPath + "/ProductGroups/" + items[k].PRODUCT_GROUP;
+                        let oProductGroup = this.oSalesModelLocal.getProperty(sPath);
+                        if(!oProductGroup) {
+                            oProductGroup = { "PRODUCT_GROUP":items[k].PRODUCT_GROUP,
+                                              "REVENUE":items[k].REVENUE,
+                                              "CURRENCY":items[k].CURRENCY };
+                            this.oSalesModelLocal.setProperty(sPath,oProductGroup);
+                            
+                            oSalesOrg.REVENUE = parseFloat(oSalesOrg.REVENUE) + parseFloat(items[k].REVENUE);
+                            
+                        }
+                        
+                    }
+                }
+            }
+        },
+            
+        parseGeoShape: function(sShape) {
+            // build latitude and longitude string out of geojson
+            let mapPositionString;
+            if(sShape){
+                let shapeFeatures = JSON.parse(sShape);
+                mapPositionString = "";
+                if(shapeFeatures) {
+                    shapeFeatures.coordinates.pop().forEach(function(coor){
+                        let x = coor.pop();
+                        let y = coor.pop();
+                        mapPositionString = mapPositionString + y + ";" + x + ";0;";
+                    });
+                    mapPositionString = mapPositionString.substring(0, mapPositionString.length - 1);
+                }
+            }
+            return mapPositionString;
+        },
 
 		doFilterMap: function () {
+		    // apply current selected filter to the map
 		    let aFilter = [];
 		    this.oSelectSalesOrg.getSelectedItems().forEach(function(el){
 		        if(el.getKey()){
@@ -388,15 +497,17 @@ sap.ui.define([
 			return new sap.m.Label({text: "{/Filter/text}"});
 		},
 
-		/* event handlers for map events */
+		/* =========================================================== */
+		/* handlers for map events                                     */
+		/* =========================================================== */
 
 		onPressLegend: function() {
 			if (this.byId("vbi").getLegendVisible() === true) {
 				this.byId("vbi").setLegendVisible(false);
-				this.byId("btnLegend").setTooltip("Show legend");
+				this.byId("btnLegend").setTooltip(this.getResourceBundle().getText("legendShow"));
 			} else {
 				this.byId("vbi").setLegendVisible(true);
-				this.byId("btnLegend").setTooltip("Hide legend");
+				this.byId("btnLegend").setTooltip(this.getResourceBundle().getText("legendHide"));
 			}
 		},
 
@@ -407,16 +518,16 @@ sap.ui.define([
 				} else {
 					this.byId("vbi").minimize(168, 72, 1680, 720); //Height: 4,5 rem; Width: 10,5 rem
 				}
-				this.byId("btnResize").setTooltip("Maximize");
+				this.byId("btnResize").setTooltip(this.getResourceBundle().getText("maximize"));
 			} else {
 				this.byId("vbi").maximize();
-				this.byId("btnResize").setTooltip("Minimize");
+				this.byId("btnResize").setTooltip(this.getResourceBundle().getText("minimize"));
 			}
 		},
 
 		onClickCircle: function(oEvent) {
-		    /* handle click on data-element on map */
-		    /* opens popover with additional information and jump options */
+		    // handle click on data-element on map
+		    // opens popover with additional information and jump options 
 			
 			var oClickedElement = oEvent.getSource();  
 			
@@ -437,7 +548,8 @@ sap.ui.define([
 			// delay because addDependent will do a async rerendering and the actionSheet will immediately close without it.
 			jQuery.sap.delayedCall(0, this, function () {
     			if(!oClickedElement.bOutput){
-    			    /* clicked element is not available in DOM => generate spot to open popover from there */
+    			    // clicked element is not available in DOM => generate spot to open popover from there
+    			    // always the case for geoshapes, because they are only renderen on the canvas
     			    if(!this._oPopoverIcon){
     			        this._oPopoverIcon = new sap.ui.core.Icon({"src":"sap-icon://overlay","color":"rgb(255,255,255)"});
     			    }
@@ -470,9 +582,20 @@ sap.ui.define([
 			});
 		},
 
-		/* Navigation */
+		/* =========================================================== */
+		/* navigation                                                  */
+		/* =========================================================== */
+		
+		updateCurrentRoute: function() {
+			this.getRouter().navTo("map", { 
+				mapType : this.oGeoMap.getRefMapLayerStack(),
+				year : this.oModel.getProperty("/DateStart").getFullYear(),
+				month : this.oModel.getProperty("/DateStart").getMonth() + 1
+			}, true);
+		},
 
 		gotoPredict: function(oEvent) {
+		    // go to predict route and pass routing parameters
 		    let iYear = this.oModel.getProperty("/DateStart").getFullYear();
 		    let iMonth = this.oModel.getProperty("/DateStart").getMonth() + 1;
 		    let sSalesOrgNow = oEvent.getSource().data("salesorgNow");
@@ -505,11 +628,15 @@ sap.ui.define([
 				monthEnd2: 12
 			}, true);
 		},
-		
-		/* HELP FUNCTIONS */
+
+		/* =========================================================== */
+		/* initial configuration help functions                        */
+		/* =========================================================== */
 		
 		configureTimePicker: function() {
-		    //TODO: change to dynamic values
+		    // limit available date range for the timepicker
+		    
+		    //TODO: could be changed to dynamic values
 			let iYearStart = 2007;
 			let iYearEnd = 2011;
 			let iYearNow = new Date().getFullYear();
@@ -526,19 +653,15 @@ sap.ui.define([
 			let oSelectedDateStart = this.oSliderTimeframe.getStartDate();
 		    this.oSliderTimeframe.removeAllSelectedDates();
 			this.oSliderTimeframe.addSelectedDate(new sap.ui.unified.DateRange({"startDate":oSelectedDateStart}));
-			/*
-			let oSelectedDateEnd = new Date(oSelectedDateStart);
-			oSelectedDateEnd.setDate(oSelectedDateStart.getDate() + 364);
-			this.oSliderTimeframe.addSelectedDate(new sap.ui.unified.DateRange({"startDate":oSelectedDateStart,"endDate":oSelectedDateEnd}));
-			*/
 			
+			// execute like it was clicked on the first load
 			this.onMonthChange();
 		},
 
         configureGeoMap: function() {
 			var sLanguage = sap.ui.getCore().getConfiguration().getLanguage();
 
-			/* geo map configuration */
+			// geo map configuration
 			this.oGeoMap = this.getView().byId("map2");
 			var oMapConfig = {
 				"MapProvider": [
@@ -641,16 +764,8 @@ sap.ui.define([
 			this.oGeoMap.setRefMapLayerStack("OpenStreet");
 	    },
 		
-		updateCurrentRoute: function() {
-			this.getRouter().navTo("map", { 
-				mapType : this.oGeoMap.getRefMapLayerStack(),
-				year : this.oModel.getProperty("/DateStart").getFullYear(),
-				month : this.oModel.getProperty("/DateStart").getMonth() + 1
-			}, true);
-		},
-		
 		configureMapSalesData: function() {
-            /* get sales data */
+            // get sales data from odata model (sales cube)
             this.oSalesModel = this.getModel("sales");
             this.oModel.setProperty("/Legend/Revenue",{"Min":undefined,"Max":undefined});
             this.oSalesModel.read("/SalesMonthProductGroup", 
@@ -680,82 +795,7 @@ sap.ui.define([
             this.oSalesModelPredict = new JSONModel();
             this.setModel(this.oSalesModelPredict,"sales3");
             this.readSalesData();  
-		},
-		
-		transformSalesModel: function(oData) {
-                
-                let iRevenueMin = this.oModel.getProperty("/Legend/Revenue/Min");
-                let iRevenueMax = this.oModel.getProperty("/Legend/Revenue/Max");
-                let iRevenueSteps = (iRevenueMax - iRevenueMin) / 4;
-                this.oModel.setProperty("/Legend/Revenue/1",iRevenueSteps * 1);
-                this.oModel.setProperty("/Legend/Revenue/2",iRevenueSteps * 2);
-                this.oModel.setProperty("/Legend/Revenue/3",iRevenueSteps * 3);
-                this.oModel.setProperty("/Legend/Revenue/4",iRevenueSteps * 4);
-                
-                let items = oData.results;
-                for(let k in items) {
-                    if (typeof items[k] !== 'function') {
-                        if (items[k].__metadata.uri.includes("SalesMonthProductGroup")) {
-                            
-                            /* set aggregated items on month base */
-                            
-                            let sPath = "/SalesMonth";
-                            if(!this.oSalesModelLocal.getProperty(sPath)) {
-                                this.oSalesModelLocal.setProperty(sPath,{});
-                            }
-                            sPath = sPath + "/" + items[k].SALES_ORGANISATION + "_" + items[k].YEAR + "_" + items[k].MONTH;
-                            let oSalesOrg = this.oSalesModelLocal.getProperty(sPath);
-                            if(!oSalesOrg) {
-                                oSalesOrg = { "YEAR":items[k].YEAR,
-                                              "MONTH":items[k].MONTH,
-                                              "SALES_ORGANISATION":items[k].SALES_ORGANISATION,
-                                              "REVENUE":0,
-                                              "CURRENCY":items[k].CURRENCY,
-                                              "tooltip": items[k].SALES_ORGANISATION,
-                                              "ProductGroups":{} };
-                                this.oSalesModelLocal.setProperty(sPath,oSalesOrg);
-                                
-                                /* read text */
-                                this.getSalesOrgText(items[k].SALES_ORGANISATION, function(s){oSalesOrg.tooltip = s;});
-                                
-                                /* create geo shape */
-                                oSalesOrg.position = this.parseGeoShape(items[k].SHAPE);
-                            }
-                            
-                            sPath = sPath + "/ProductGroups/" + items[k].PRODUCT_GROUP;
-                            let oProductGroup = this.oSalesModelLocal.getProperty(sPath);
-                            if(!oProductGroup) {
-                                oProductGroup = { "PRODUCT_GROUP":items[k].PRODUCT_GROUP,
-                                                  "REVENUE":items[k].REVENUE,
-                                                  "CURRENCY":items[k].CURRENCY };
-                                this.oSalesModelLocal.setProperty(sPath,oProductGroup);
-                                
-                                oSalesOrg.REVENUE = parseFloat(oSalesOrg.REVENUE) + parseFloat(items[k].REVENUE);
-                                
-                            }
-                            
-                        }
-                    }
-                }
-            },
-            
-            
-            parseGeoShape: function(sShape) {
-                let mapPositionString;
-                if(sShape){
-                    let shapeFeatures = JSON.parse(sShape);
-                    mapPositionString = "";
-                    if(shapeFeatures) {
-                        shapeFeatures.coordinates.pop().forEach(function(coor){
-                            let x = coor.pop();
-                            let y = coor.pop();
-                            mapPositionString = mapPositionString + y + ";" + x + ";0;";
-                        });
-                        mapPositionString = mapPositionString.substring(0, mapPositionString.length - 1);
-                    }
-                }
-                return mapPositionString;
-            }
+		}
 
 	});
 

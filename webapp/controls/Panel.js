@@ -1,3 +1,5 @@
+/* CUSTOM CONTROL EXPANDING STANDARD PANEL CONTROL */
+
 sap.ui.define(
     ["sap/m/Panel"],
 	function(Panel) {
@@ -20,7 +22,8 @@ sap.ui.define(
 
 			_onPanelHeaderClick: function(oEvent, oElement) {
                 
-				/* Increase usability by enabling collapse/expand also on simple panel header click */
+				/* The default panel control can only expand with the tiny button at the header start */
+				/* Increase usability by enabling collapse/expand also on simple click on the whole panel header */
 			    
 			    var isInToolbar = false;
 			    var e = oEvent.toElement;

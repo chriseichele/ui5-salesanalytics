@@ -124,7 +124,7 @@
                     "target": "map"
 				},
                 {
-                    "pattern": "predict:chartType:/:yearStart1::monthStart1::yearEnd1::monthEnd1:/:yearStart2::monthStart2::yearEnd2::monthEnd2:/:productGroups:",
+                    "pattern": "predict:chartType:/:yearStart1::monthStart1::yearEnd1::monthEnd1:/:yearStart2::monthStart2::yearEnd2::monthEnd2:/:productGroups:/:expectedMarketGrowth:",
                     "name": "predict",
                     "target": "predict"
 				},

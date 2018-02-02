@@ -19,7 +19,7 @@
                 }
             }
         };
-        // add url parameters for fiori config
+        // add url parameters for fiori config, so they do not have to be added manually
         if (history.pushState && !getUrlParameter('sap-ushell-sandbox-config')) {
             let path = window.location.pathname;
             let dir = path.substring(0, path.lastIndexOf('/')) + "/";
@@ -45,9 +45,15 @@
         };
     </script>
 
+    <!-- Fiori Launchpad is simulated -->
+    <!-- In enterprise solution, this whole indes file would not be needed 
+         and the app component could be integrated into the standard launchpad and its configuration -->
     <script src="https://sapui5.hana.ondemand.com/sdk/test-resources/sap/ushell/bootstrap/sandbox.js" id="sap-ushell-bootstrap"></script>
 
     <!-- Bootstrap the UI5 core library -->
+    <!-- Load UI5 Version 1.50.11 from external SAP HANA Server in order to use newer controls -->
+    <!-- Define custom theme 'tum' -->
+    <!-- Important: activate complex binding syntax to make the full potential of data binding available -->
     <script id='sap-ui-bootstrap'
       src='https://sapui5.netweaver.ondemand.com/1.50.11/resources/sap-ui-core.js'
       data-sap-ui-libs='sap.m, sap.ushell, sap.collaboration'
@@ -63,6 +69,7 @@
     <script>
         sap.ui.getCore().attachInit(function() {
             // initialize the ushell sandbox component
+            // the starting tiles for the app's component are configured in the launchpad config file
             sap.ushell.Container.createRenderer().placeAt("content");
         });
     </script>

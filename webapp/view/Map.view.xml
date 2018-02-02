@@ -119,6 +119,15 @@
 					                        		key="{sales2>SALES_ORGANISATION}" 
 					                        		hotDeltaColor="RHLSA(0;1.1;1.0;1.0)" />
 											</vbm:Areas>
+											<vbm:Areas id="mapAreasPredict" items="{sales3>/SalesMonth}" >
+												<vbm:Area id="AreaPredict" click="onClickCircle" 
+					                        		tooltip="{sales3>tooltip}" 
+					                        		color="{path: 'sales3>REVENUE', formatter: '.formatter.revenueColorPredicted' }"
+					                        		colorBorder="rgba(180,180,180,0.9)"
+					                        		position="{sales3>position}" 
+					                        		key="{sales3>SALES_ORGANISATION}" 
+					                        		hotDeltaColor="RHLSA(0;1.1;1.0;1.0)" />
+											</vbm:Areas>
 										</vbm:vos>
 										
 										<!--

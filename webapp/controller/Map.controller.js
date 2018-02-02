@@ -27,6 +27,8 @@ sap.ui.define([
 			this.oModel.setProperty("/Filter", { "text" : this.getFormattedSummaryText([]) });
 			this.addSnappedLabel();
 			
+			this.oBusyDialog = new sap.m.BusyDialog();
+			
 		    this.oModel.setProperty("/Legend",{"Color":{"Now":{
 		                                                "1":"rgba(175, 223, 255, 0.8)",
 		                                                "2":"rgba(132, 185, 231, 0.8)",
@@ -173,6 +175,122 @@ sap.ui.define([
                 filters: aFilter
               };
             this.oSalesModel.read("/SalesMonthProductGroup", mParams );  
+            let iYearStartPrediction = new Date().getFullYear();
+            if(this.oModel.getProperty("/DateStart").getFullYear() >= iYearStartPrediction) {
+                this.readSalesDataPredicted(doReread);
+            }
+		},
+		
+		readSalesDataPredicted: function(doReread) {
+		    if(doReread) {
+		        this.oSalesModelPredict.oData = {};
+		    }
+		    
+		    let iYear = this.oModel.getProperty("/DateStart").getFullYear();
+		    let iMonth = this.oModel.getProperty("/DateStart").getMonth() + 1;
+		    
+		    if(!this.getView().getParent().getParent().getBusy()) {
+                this.oBusyDialog.open();
+		    }
+		    
+		    let finished = function() {
+		        this.oBusyDialog.close();
+		    }.bind(this);
+		    
+		    let processResponseSalesOrg = function(oDataSalesOrg) {
+		        
+		        let salesOrgs = oDataSalesOrg.results;
+                for(let k in salesOrgs) {
+                    if (typeof salesOrgs[k] !== 'function') {
+                            
+                        let sPath = "/SalesMonth";
+                        if(!this.oSalesModelPredict.getProperty(sPath)) {
+                            this.oSalesModelPredict.setProperty(sPath,{});
+                        }
+                        sPath = sPath + "/" + salesOrgs[k].SALES_ORGANISATION + "_" + iYear + "_" + iMonth;
+                        let oSalesOrg = this.oSalesModelPredict.getProperty(sPath);
+                        if(!oSalesOrg) {
+                            oSalesOrg = { "YEAR":iYear,
+                                          "MONTH":iMonth,
+                                          "SALES_ORGANISATION":salesOrgs[k].SALES_ORGANISATION,
+                                          "REVENUE":0,
+                                          "CURRENCY":salesOrgs[k].CURRENCY,
+                                          "tooltip": salesOrgs[k].SALES_ORGANISATION,
+                                          "ProductGroups":{} };
+                            this.oSalesModelPredict.setProperty(sPath,oSalesOrg);
+                            
+                            /* read text */
+                            this.getSalesOrgText(salesOrgs[k].SALES_ORGANISATION, function(s){oSalesOrg.tooltip = s;});
+                            
+                            oSalesOrg.position = this.parseGeoShape(salesOrgs[k].SHAPE);
+                        }
+                    }
+                }
+		        
+		        let aFilter = [];
+    		    this.oSelectProductGroup.getSelectedItems().forEach(function(el){
+    		        if(el.getKey()){         
+    		            let oFilter =  new sap.ui.model.Filter('PRODUCT_GROUP', sap.ui.model.FilterOperator.EQ, el.getKey());          
+    		            aFilter.push(oFilter);
+    		        }
+    		    });
+		    
+    		    let processResponseProdGroup = function(oDataProdGroups) {
+    		        let prodGroups = oDataProdGroups.results;
+    		        // loop over sales orgs
+                    for(let k in salesOrgs) {
+                        if (typeof salesOrgs[k] !== 'function') {
+                            
+                            let sPathSalesOrg = "/SalesMonth/" + salesOrgs[k].SALES_ORGANISATION + "_" + iYear + "_" + iMonth;
+                            let oSalesOrg = this.oSalesModelPredict.getProperty(sPathSalesOrg);
+                        
+                            //loop over prod groups
+                            for(let p in prodGroups) {
+                                if (typeof prodGroups[p] !== 'function') {
+                                    // get predicted revenue
+                                    let sPath = sPathSalesOrg + "/ProductGroups/" + prodGroups[p].PRODUCT_GROUP;
+                                    let oProductGroup = this.oSalesModelPredict.getProperty(sPath);
+                                    if(!oProductGroup) {
+                                        
+                                        //TODO use asynchronous method, if service in backend is adjusted
+                                        let oPredictModel = new JSONModel();
+                                        oPredictModel.loadData('model/predict.xsjs' + '?year=' + iYear 
+                                                                                    + '&month=' + iMonth 
+                                                                                    + '&sales_org=' + salesOrgs[k].SALES_ORGANISATION 
+                                                                                    + '&product_group=' + prodGroups[p].PRODUCT_GROUP, "", false);
+                                        let iRevenuePredicted = oPredictModel.getData();
+                                        if(!iRevenuePredicted || isNaN(iRevenuePredicted) ) {
+                                            iRevenuePredicted = 0;
+                                        }
+                                        
+                                        oProductGroup = { "PRODUCT_GROUP":prodGroups[p].PRODUCT_GROUP,
+                                                          "REVENUE":iRevenuePredicted,
+                                                          "CURRENCY":oSalesOrg.CURRENCY };
+                                        this.oSalesModelPredict.setProperty(sPath,oProductGroup);
+                                        
+                                        oSalesOrg.REVENUE = parseFloat(oSalesOrg.REVENUE) + parseFloat(iRevenuePredicted);
+                                        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                
+    		        
+                    finished();
+    		    }.bind(this);
+                this.oSalesModel.read("/ProductGroups", {
+                    success: processResponseProdGroup,
+                    error: finished,
+                    filters: aFilter
+                  } ); 
+		        
+		    }.bind(this);
+            this.oSalesModel.read("/SalesMonthProductGroup", {
+                success: processResponseSalesOrg,
+                error: finished,
+                urlParameters: { '$select': 'SALES_ORGANISATION,SHAPE,CURRENCY' }
+              } );  
 		},
 		
 		onMonthChange: function() {
@@ -200,9 +318,13 @@ sap.ui.define([
 		    aFilter.push(new sap.ui.model.Filter("YEAR", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getFullYear()));
 		    aFilter.push(new sap.ui.model.Filter("MONTH", sap.ui.model.FilterOperator.EQ, this.oModel.getProperty("/DateStart").getMonth() + 1));
 		    
-		    let oMapAreaItems = this.getView().byId("mapAreasNow").getBinding("items");
-		    if(oMapAreaItems) {
-		        oMapAreaItems.filter(aFilter, sap.ui.model.FilterType.Application);
+		    let oMapAreaItemsNow = this.getView().byId("mapAreasNow").getBinding("items");
+		    if(oMapAreaItemsNow) {
+		        oMapAreaItemsNow.filter(aFilter, sap.ui.model.FilterType.Application);
+		    }
+		    let oMapAreaItemsPredict = this.getView().byId("mapAreasPredict").getBinding("items");
+		    if(oMapAreaItemsPredict) {
+		        oMapAreaItemsPredict.filter(aFilter, sap.ui.model.FilterType.Application);
 		    }
 		},
 
@@ -303,6 +425,9 @@ sap.ui.define([
 				if(oClickedElement.oBindingContexts.sales2){
 				    this._oPopover.bindElement("sales2>" + oClickedElement.oBindingContexts.sales2.sPath);
 				}
+				if(oClickedElement.oBindingContexts.sales3){
+				    this._oPopover.bindElement("sales3>" + oClickedElement.oBindingContexts.sales3.sPath);
+				}
 			}
 
 			// delay because addDependent will do a async rerendering and the actionSheet will immediately close without it.
@@ -344,10 +469,18 @@ sap.ui.define([
 		/* Navigation */
 
 		gotoPredict: function(oEvent) {
-		    let sSalesOrg = oEvent.getSource().data("salesorg");
 		    let iYear = this.oModel.getProperty("/DateStart").getFullYear();
 		    let iMonth = this.oModel.getProperty("/DateStart").getMonth() + 1;
-		    let oSalesOrg = this.oSalesModelLocal.getProperty("/SalesMonth/" + sSalesOrg + "_" + iYear + "_" + iMonth);
+		    let sSalesOrgNow = oEvent.getSource().data("salesorgNow");
+		    let sSalesOrgPredict = oEvent.getSource().data("salesorgPredict");
+		    let sSalesOrg, oSalesOrg;
+		    if(sSalesOrgNow) {
+		        sSalesOrg = sSalesOrgNow;
+		        oSalesOrg = this.oSalesModelLocal.getProperty("/SalesMonth/" + sSalesOrg + "_" + iYear + "_" + iMonth);
+		    } else {
+		        sSalesOrg = sSalesOrgPredict;
+		        oSalesOrg = this.oSalesModelPredict.getProperty("/SalesMonth/" + sSalesOrg + "_" + iYear + "_" + iMonth);
+		    }
 		    
 		    let sProductGroups = "";
 		    Object.keys(oSalesOrg.ProductGroups).forEach(function(key) {
@@ -372,6 +505,7 @@ sap.ui.define([
 		/* HELP FUNCTIONS */
 		
 		configureTimePicker: function() {
+		    //TODO: change to dynamic values
 			let iYearStart = 2007;
 			let iYearEnd = 2011;
 			let iYearNow = new Date().getFullYear();
@@ -539,6 +673,8 @@ sap.ui.define([
                                   );
             this.oSalesModelLocal = new JSONModel();
             this.setModel(this.oSalesModelLocal,"sales2");
+            this.oSalesModelPredict = new JSONModel();
+            this.setModel(this.oSalesModelPredict,"sales3");
             this.readSalesData();  
 		},
 		
@@ -579,18 +715,7 @@ sap.ui.define([
                                 this.getSalesOrgText(items[k].SALES_ORGANISATION, function(s){oSalesOrg.tooltip = s;});
                                 
                                 /* create geo shape */
-                                if(items[k].SHAPE){
-                                    let shapeFeatures = JSON.parse(items[k].SHAPE);
-                                    oSalesOrg.position = "";
-                                    if(shapeFeatures) {
-                                        shapeFeatures.coordinates.pop().forEach(function(coor){
-                                            let x = coor.pop();
-                                            let y = coor.pop();
-                                            oSalesOrg.position = oSalesOrg.position + y + ";" + x + ";0;";
-                                        });
-                                        oSalesOrg.position = oSalesOrg.position.substring(0, oSalesOrg.position.length - 1);
-                                    }
-                                }
+                                oSalesOrg.position = this.parseGeoShape(items[k].SHAPE);
                             }
                             
                             sPath = sPath + "/ProductGroups/" + items[k].PRODUCT_GROUP;
@@ -608,6 +733,24 @@ sap.ui.define([
                         }
                     }
                 }
+            },
+            
+            
+            parseGeoShape: function(sShape) {
+                let mapPositionString;
+                if(sShape){
+                    let shapeFeatures = JSON.parse(sShape);
+                    mapPositionString = "";
+                    if(shapeFeatures) {
+                        shapeFeatures.coordinates.pop().forEach(function(coor){
+                            let x = coor.pop();
+                            let y = coor.pop();
+                            mapPositionString = mapPositionString + y + ";" + x + ";0;";
+                        });
+                        mapPositionString = mapPositionString.substring(0, mapPositionString.length - 1);
+                    }
+                }
+                return mapPositionString;
             }
 
 	});

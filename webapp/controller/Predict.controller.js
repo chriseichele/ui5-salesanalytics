@@ -341,6 +341,8 @@ sap.ui.define([
             chartContainer.detachContentChange();
             
             let callback = function() {
+                // actual chart configuration
+                //TODO: add chart with aggregated values for multiple product groups
                 let oDataset, feedValues1, feedValues2, feedValues3, feedAxisLabels, sVizTitle;
                 let i18n = this.getResourceBundle();
                 switch(this.oVizFrame.getVizType()) {

@@ -290,26 +290,32 @@ sap.ui.define([
                                     let oProductGroup = this.oSalesModelPredict.getProperty(sPath);
                                     if(!oProductGroup) {
                                         
-                                        //TODO use asynchronous method, if service in backend is adjusted
-                                        let oPredictModel = new JSONModel();
-                                        // read predicted revenue for this product group/salesorg combination
-                                        oPredictModel.loadData('model/predict.xsjs' + '?year=' + iYear 
-                                                                                    + '&month=' + iMonth 
-                                                                                    + '&sales_org=' + salesOrgs[k].SALES_ORGANISATION 
-                                                                                    + '&product_group=' + prodGroups[p].PRODUCT_GROUP
-                                                                                    + '&market_growth=0', "", false);
-                                        let iRevenuePredicted = oPredictModel.getData();
-                                        if(!iRevenuePredicted || isNaN(iRevenuePredicted) ) {
-                                            iRevenuePredicted = 0;
-                                        }
-                                        
-                                        oProductGroup = { "PRODUCT_GROUP":prodGroups[p].PRODUCT_GROUP,
-                                                          "REVENUE":iRevenuePredicted,
-                                                          "CURRENCY":oSalesOrg.CURRENCY };
-                                        // set property in model to save data for data binding
-                                        this.oSalesModelPredict.setProperty(sPath,oProductGroup);
-                                        // sum for sales org
-                                        oSalesOrg.REVENUE = parseFloat(oSalesOrg.REVENUE) + parseFloat(iRevenuePredicted);
+                                        // asynchronus ajax call
+                                        jQuery.ajax( {
+                                             type:'GET',
+                                             url:'model/predict.xsjs' + '?year=' + iYear 
+                                                                      + '&month=' + iMonth
+                                                                      + '&sales_org=' + salesOrgs[k].SALES_ORGANISATION 
+                                                                      + '&product_group=' + prodGroups[p].PRODUCT_GROUP
+                                                                      + '&market_growth=' + 0,
+                                             success:function(data) {
+                                                // save returned predicted value on different aggregation levels for charts
+                                                let iRevenuePredicted = parseFloat(data);
+                                                
+                                                if(!iRevenuePredicted || isNaN(iRevenuePredicted) ) {
+                                                    iRevenuePredicted = 0;
+                                                }
+                                                
+                                                oProductGroup = { "PRODUCT_GROUP":prodGroups[p].PRODUCT_GROUP,
+                                                                  "REVENUE":iRevenuePredicted,
+                                                                  "CURRENCY":oSalesOrg.CURRENCY };
+                                                // set property in model to save data for data binding
+                                                this.oSalesModelPredict.setProperty(sPath,oProductGroup);
+                                                // sum for sales org
+                                                oSalesOrg.REVENUE = parseFloat(oSalesOrg.REVENUE) + parseFloat(iRevenuePredicted);
+                                                
+                                             }.bind(this)
+                                        });
                                         
                                     }
                                 }

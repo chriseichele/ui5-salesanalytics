@@ -101,6 +101,7 @@ try {
     	conn = $.db.getConnection();
     	pstmt = conn.prepareCall(query);
     	pstmt.execute();
+    	
 	
     	// get predicted result
         query = 'SELECT * FROM "GBI_005"."PAL_FPR_FITTED_TBL" WHERE "ID" = ' + intKey + ';';

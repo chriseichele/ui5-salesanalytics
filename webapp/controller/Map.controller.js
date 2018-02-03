@@ -631,7 +631,8 @@ sap.ui.define([
 				yearStart2: iYear + 1,
 				monthStart2: 1,
 				yearEnd2: iYear + 1,
-				monthEnd2: 12
+				monthEnd2: 12,
+				expectedMarketGrowth: 0
 			}, true);
 		},
 

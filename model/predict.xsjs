@@ -1,3 +1,7 @@
+/* --------------------------------------------------- */
+/* HELP FUNCTIONS                                      */
+/* --------------------------------------------------- */
+
 function createEntryOrg(rs) {
 	return {
 	    'type': 'Feature',
@@ -6,47 +10,58 @@ function createEntryOrg(rs) {
 		};
 }
 
-function CalcualtePerformance(perc, year){
+function calcPerformance(perc, year){
     var res = 1;
     for (var i = 2011; i < year; i++){
-        res = res*(1+perc);
+        res = res * (1 + perc);
     }
     return res;
 }
 
-var param1 = $.request.parameters.get('year');
-var param2 = $.request.parameters.get('month');
-var param3_Strg = $.request.parameters.get('sales_org');
-var param4_Strg = $.request.parameters.get('product_group');
-var param5= parseFloat($.request.parameters.get('market_growth'));
+/* --------------------------------------------------- */
+/* START OF EXECUTION ON CALL                          */
+/* --------------------------------------------------- */
 
+// get url parameters
+var paramYear = $.request.parameters.get('year');
+var paramMonth = $.request.parameters.get('month');
+var paramSalesOrg = $.request.parameters.get('sales_org');
+var paramProdGroup = $.request.parameters.get('product_group');
+var paramMarketGrowth = parseFloat($.request.parameters.get('market_growth'));
 
+// get internal keys to translate url paramters
 try {
     var conn = $.db.getConnection();
-    var query = 'SELECT DISTINCT "PRODUCT_GROUP_MAPPED" FROM "_SYS_BIC"."gbi-student-006.SalesDataAnalytics.data/SALES_ALL" WHERE "PRODUCT_GROUP" = \''+ param4_Strg + '\';';
+    var query = 'SELECT DISTINCT "PRODUCT_GROUP_MAPPED" '
+              + 'FROM "_SYS_BIC"."gbi-student-006.SalesDataAnalytics.data/SALES_ALL" '
+              + 'WHERE "PRODUCT_GROUP" = \'' + paramProdGroup + '\';';
 	
 	var pstmt = conn.prepareStatement(query);
 	var rs = pstmt.executeQuery();
 	
 	rs.next();
-	var param4 = rs.getInteger(1)+"";
+	var paramProdGroupIntKey = rs.getInteger(1) + "";
 	
-    query = 'SELECT DISTINCT "SALES_ORG_MAPPED" FROM "_SYS_BIC"."gbi-student-006.SalesDataAnalytics.data/SALES_ALL" WHERE "SALES_ORGANISATION" = \''+ param3_Strg + '\';';
+    query = 'SELECT DISTINCT "SALES_ORG_MAPPED" '
+          + 'FROM "_SYS_BIC"."gbi-student-006.SalesDataAnalytics.data/SALES_ALL" '
+          + 'WHERE "SALES_ORGANISATION" = \'' + paramSalesOrg + '\';';
 	
 	pstmt = conn.prepareStatement(query);
 	rs = pstmt.executeQuery();
 
 	rs.next();
-	var param3 = rs.getInteger(1)+"";
+	var paramSalesOrgIntKey = rs.getInteger(1) + "";
 	
 } catch(e) {
 	$.response.status = $.net.http.INTERNAL_SERVER_ERROR;
 	$.response.setBody("ERROR while catch" + e.message);
 }
 
+// get predicted value
 try {
     conn = $.db.getConnection();
 
+	// clear table to have fresh starting point
 	pstmt = conn.prepareStatement("DELETE FROM \"GBI_005\".\"PAL_FPR_PREDICTDATA_TBL\";");
 	pstmt.execute();
 	conn.commit();
@@ -59,21 +74,17 @@ try {
     conn = $.db.getConnection();
     conn.prepareStatement("SET SCHEMA \"GBI_005\"").execute();
     var st = conn.prepareStatement("INSERT INTO \"PAL_FPR_PREDICTDATA_TBL\" values(0,?)");
-    //st.setString(1,param1);
-    st.setString(1,param2);
-    //st.setString(2,param3);
-    //st.setString(3,param4);
+    st.setString(1,paramMonth);
     st.execute();
     conn.commit();
     var record = [];
-    //record.push(param1);
-    record.push(param2);
-    //record.push(param3);
-    //record.push(param4);
+    record.push(paramMonth);
     output.data.push(record);
     conn.close();
 
-	query = "CALL \"GBI_005\".\"PAL_FORECAST_POLYNOMIALR_PROC\"(\"GBI_005\".\"PAL_FPR_PREDICTDATA_TBL\", \"GBI_005\".\"PAL_PR_RESULTS_TBL_" + param4 + "_" + param3 + "\", \"GBI_005\".\"PAL_CONTROL_TBL\", \"GBI_005\".\"PAL_FPR_FITTED_TBL\") with overview;";
+	// call SAP Predictive Analytics Procedure
+	query = "CALL \"GBI_005\".\"PAL_FORECAST_POLYNOMIALR_PROC\"(\"GBI_005\".\"PAL_FPR_PREDICTDATA_TBL\", \"GBI_005\".\"PAL_PR_RESULTS_TBL_" 
+	      + paramSalesOrgIntKey + "_" + paramSalesOrgIntKey + "\", \"GBI_005\".\"PAL_CONTROL_TBL\", \"GBI_005\".\"PAL_FPR_FITTED_TBL\") with overview;";
 	conn = $.db.getConnection();
 
 	pstmt = conn.prepareCall(query);
@@ -87,16 +98,18 @@ try {
 	rs.next();
 	var result = rs.getDouble(2);
     
+    // calculate result
     if (result < 0){
         result = 0;
     } else {
-        result =result*CalcualtePerformance(param5, param1);
+        result = result * calcPerformance(paramMarketGrowth, paramYear);
     }
     
 	rs.close();
 	pstmt.close();
 	conn.close();
 	
+	// return response
 	$.response.contentType = "application/json";
 	$.response.headers.set("access-control-allow-origin", "*");
 	$.response.setBody(result);

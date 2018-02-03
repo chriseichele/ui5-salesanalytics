@@ -62,7 +62,7 @@ try {
     conn = $.db.getConnection();
 
 	// clear table to have fresh starting point
-	pstmt = conn.prepareStatement("DELETE FROM \"GBI_005\".\"PAL_FPR_PREDICTDATA_TBL\";");
+	pstmt = conn.prepareStatement('DELETE FROM "GBI_005"."PAL_FPR_PREDICTDATA_TBL";');
 	pstmt.execute();
 	conn.commit();
 	pstmt.close();
@@ -72,8 +72,8 @@ try {
     var output = {};
     output.data = [];
     conn = $.db.getConnection();
-    conn.prepareStatement("SET SCHEMA \"GBI_005\"").execute();
-    var st = conn.prepareStatement("INSERT INTO \"PAL_FPR_PREDICTDATA_TBL\" values(0,?)");
+    conn.prepareStatement('SET SCHEMA "GBI_005"').execute();
+    var st = conn.prepareStatement('INSERT INTO "PAL_FPR_PREDICTDATA_TBL" values(0,?)');
     st.setString(1,paramMonth);
     st.execute();
     conn.commit();
@@ -83,8 +83,9 @@ try {
     conn.close();
 
 	// call SAP Predictive Analytics Procedure
-	query = "CALL \"GBI_005\".\"PAL_FORECAST_POLYNOMIALR_PROC\"(\"GBI_005\".\"PAL_FPR_PREDICTDATA_TBL\", \"GBI_005\".\"PAL_PR_RESULTS_TBL_" 
-	      + paramProdGroupIntKey + "_" + paramSalesOrgIntKey + "\", \"GBI_005\".\"PAL_CONTROL_TBL\", \"GBI_005\".\"PAL_FPR_FITTED_TBL\") with overview;";
+	query = 'CALL "GBI_005"."PAL_FORECAST_POLYNOMIALR_PROC"("GBI_005"."PAL_FPR_PREDICTDATA_TBL", '
+	      + '"GBI_005"."PAL_PR_RESULTS_TBL_' + paramProdGroupIntKey + '_' + paramSalesOrgIntKey + '",'
+	      + '"GBI_005"."PAL_CONTROL_TBL", "GBI_005"."PAL_FPR_FITTED_TBL") with overview;';
 	conn = $.db.getConnection();
 
 	pstmt = conn.prepareCall(query);

@@ -18,6 +18,23 @@ function calcPerformance(perc, year){
     return res;
 }
 
+function doInsert(intKey2, paramMonth2) {
+    // Insert new key, that has to be predicted
+    let output = {};
+    output.data = [];
+    let conn2 = $.db.getConnection();
+    conn2.prepareStatement('SET SCHEMA "GBI_005"').execute();
+    let st = conn2.prepareStatement('INSERT INTO "PAL_FPR_PREDICTDATA_TBL" values(' + intKey2 + ',?)');
+    st.setString(1,paramMonth2);
+    st.execute();
+    conn2.commit();
+    let record = [];
+    record.push(paramMonth2);
+    output.data.push(record);
+    conn2.close();
+	
+}
+
 /* --------------------------------------------------- */
 /* START OF EXECUTION ON CALL                          */
 /* --------------------------------------------------- */
@@ -60,43 +77,41 @@ try {
 // get predicted value
 try {
     conn = $.db.getConnection();
-
-	// clear table to have fresh starting point
-	pstmt = conn.prepareStatement('DELETE FROM "GBI_005"."PAL_FPR_PREDICTDATA_TBL";');
-	pstmt.execute();
-	conn.commit();
-	pstmt.close();
-	conn.close();
 	
+	var intKey = parseInt("" + paramYear + paramMonth + paramSalesOrgIntKey + paramProdGroupIntKey,10);
 	
-    var output = {};
-    output.data = [];
-    conn = $.db.getConnection();
-    conn.prepareStatement('SET SCHEMA "GBI_005"').execute();
-    var st = conn.prepareStatement('INSERT INTO "PAL_FPR_PREDICTDATA_TBL" values(0,?)');
-    st.setString(1,paramMonth);
-    st.execute();
-    conn.commit();
-    var record = [];
-    record.push(paramMonth);
-    output.data.push(record);
-    conn.close();
-
-	// call SAP Predictive Analytics Procedure
-	query = 'CALL "GBI_005"."PAL_FORECAST_POLYNOMIALR_PROC"("GBI_005"."PAL_FPR_PREDICTDATA_TBL", '
-	      + '"GBI_005"."PAL_PR_RESULTS_TBL_' + paramProdGroupIntKey + '_' + paramSalesOrgIntKey + '",'
-	      + '"GBI_005"."PAL_CONTROL_TBL", "GBI_005"."PAL_FPR_FITTED_TBL") with overview;';
-	conn = $.db.getConnection();
-
-	pstmt = conn.prepareCall(query);
-	pstmt.execute();
-	
-    query = 'SELECT * FROM "GBI_005"."PAL_FPR_FITTED_TBL";';
-	
+	// check if predicted result is already there
+    query = 'SELECT * FROM "GBI_005"."PAL_FPR_FITTED_TBL" WHERE "ID" = ' + intKey + ';';
 	pstmt = conn.prepareStatement(query);
 	rs = pstmt.executeQuery();
+	if(!rs.next()) {
 	
-	rs.next();
+        // check if entry to be predicted is already there
+        query = 'SELECT * FROM "GBI_005"."PAL_FPR_PREDICTDATA_TBL" WHERE "ID" = ' + intKey + ';';
+    	pstmt = conn.prepareStatement(query);
+    	rs = pstmt.executeQuery();
+    	if(!rs.next()) {
+    	    doInsert(intKey, paramMonth, paramProdGroupIntKey, paramSalesOrgIntKey);
+    	}
+    
+    	// call SAP Predictive Analytics Procedure
+    	query = 'CALL "GBI_005"."PAL_FORECAST_POLYNOMIALR_PROC"("GBI_005"."PAL_FPR_PREDICTDATA_TBL", '
+    	      + '"GBI_005"."PAL_PR_RESULTS_TBL_' + paramProdGroupIntKey + '_' + paramSalesOrgIntKey + '",'
+    	      + '"GBI_005"."PAL_CONTROL_TBL", "GBI_005"."PAL_FPR_FITTED_TBL") with overview;';
+    	conn = $.db.getConnection();
+    	pstmt = conn.prepareCall(query);
+    	pstmt.execute();
+	
+    	// get predicted result
+        query = 'SELECT * FROM "GBI_005"."PAL_FPR_FITTED_TBL" WHERE "ID" = ' + intKey + ';';
+    	
+    	pstmt = conn.prepareStatement(query);
+    	rs = pstmt.executeQuery();
+    	
+    	rs.next();
+	
+	}
+	
 	var result = rs.getDouble(2);
     
     // calculate result
@@ -115,6 +130,7 @@ try {
 	$.response.headers.set("access-control-allow-origin", "*");
 	$.response.setBody(result);
 	$.response.status = $.net.http.OK;
+	
 } catch(e) {
 	$.response.status = $.net.http.INTERNAL_SERVER_ERROR;
 	$.response.setBody("ERROR while catch" + e.message);

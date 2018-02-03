@@ -84,7 +84,7 @@ try {
 
 	// call SAP Predictive Analytics Procedure
 	query = "CALL \"GBI_005\".\"PAL_FORECAST_POLYNOMIALR_PROC\"(\"GBI_005\".\"PAL_FPR_PREDICTDATA_TBL\", \"GBI_005\".\"PAL_PR_RESULTS_TBL_" 
-	      + paramSalesOrgIntKey + "_" + paramSalesOrgIntKey + "\", \"GBI_005\".\"PAL_CONTROL_TBL\", \"GBI_005\".\"PAL_FPR_FITTED_TBL\") with overview;";
+	      + paramProdGroupIntKey + "_" + paramSalesOrgIntKey + "\", \"GBI_005\".\"PAL_CONTROL_TBL\", \"GBI_005\".\"PAL_FPR_FITTED_TBL\") with overview;";
 	conn = $.db.getConnection();
 
 	pstmt = conn.prepareCall(query);

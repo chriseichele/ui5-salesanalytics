@@ -2,14 +2,6 @@
 /* HELP FUNCTIONS                                      */
 /* --------------------------------------------------- */
 
-function createEntryOrg(rs) {
-	return {
-	    'type': 'Feature',
-		'id': "SO" + rs.getInteger(1),
-		'value':  rs.getDouble(2)
-		};
-}
-
 function calcPerformance(perc, year){
     var res = 1;
     for (var i = 2011; i < year; i++){
@@ -24,7 +16,9 @@ function doInsert(intKey2, paramMonth2) {
     output.data = [];
     let conn2 = $.db.getConnection();
     conn2.prepareStatement('SET SCHEMA "GBI_005"').execute();
-    let st = conn2.prepareStatement('INSERT INTO "PAL_FPR_PREDICTDATA_TBL" values(' + intKey2 + ',?)');
+    let query2 = 'INSERT INTO "PAL_FPR_PREDICTDATA_TBL" '
+               + 'values(' + intKey2 + ',?)';
+    let st = conn2.prepareStatement(query2);
     st.setString(1,paramMonth2);
     st.execute();
     conn2.commit();
@@ -78,7 +72,11 @@ try {
 try {
     conn = $.db.getConnection();
 	
-	var intKey = parseInt("" + paramYear + paramMonth + paramSalesOrgIntKey + paramProdGroupIntKey,10);
+	var intKey = parseInt("" 
+	               + paramYear 
+	               + paramMonth 
+	               + paramSalesOrgIntKey 
+	               + paramProdGroupIntKey,10);
 	
 	// check if predicted result is already there
     query = 'SELECT * FROM "GBI_005"."PAL_FPR_FITTED_TBL" WHERE "ID" = ' + intKey + ';';
@@ -104,7 +102,9 @@ try {
     	
 	
     	// get predicted result
-        query = 'SELECT * FROM "GBI_005"."PAL_FPR_FITTED_TBL" WHERE "ID" = ' + intKey + ';';
+        query = 'SELECT * '
+              + 'FROM "GBI_005"."PAL_FPR_FITTED_TBL" '
+              + 'WHERE "ID" = ' + intKey + ';';
     	
     	pstmt = conn.prepareStatement(query);
     	rs = pstmt.executeQuery();

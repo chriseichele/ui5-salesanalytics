@@ -23,7 +23,7 @@
 				            <VBox class="sapUiSmallMarginBottom">
     				            <Label text="{i18n>expectedMarketGrowth}" class="sapUiTinyMarginBottom" />
 				                <HBox>
-                    				<Switch state="{/expectedMarketGrowthOn}" customTextOn="{i18n>yes}" customTextOff="{i18n>no}">
+                    				<Switch state="{/expectedMarketGrowthOn}" customTextOn="{i18n>yes}" customTextOff="{i18n>no}" change="onSwitchChange">
                     					<layoutData>
                     						<FlexItemData growFactor="1" />
                     					</layoutData>

@@ -8,8 +8,8 @@
 		<customHeader>
 		    <Bar>
 		        <contentMiddle>
-		            <Text text="{sales2>tooltip}" visible="{= !${/MapPopoverDisplayPredictedValues}}" />
-		            <Text text="{sales3>tooltip}" visible="{= !!${/MapPopoverDisplayPredictedValues}}" />
+		            <Text text="{sales2>tooltip}" visible="{= ${/MapPopoverDisplayCurrentValues}}" />
+		            <Text text="{sales3>tooltip}" visible="{= ${/MapPopoverDisplayPredictedValues}}" />
 		        </contentMiddle>
 		    </Bar>
 		</customHeader>
@@ -18,40 +18,32 @@
 			    tooltip="{i18n>gotoPredictTooltip}" 
 			    icon="sap-icon://business-objects-experience" 
 			    press="gotoPredict" 
-			    visible="{= !${/MapPopoverDisplayPredictedValues}}"
-			    data:salesorgNow="{sales2>SALES_ORGANISATION}"
-			    data:salesorgPredict="{sales3>SALES_ORGANISATION}" />
-			<Button text="{i18n>gotoPredict}" 
-			    tooltip="{i18n>gotoPredictTooltip}" 
-			    icon="sap-icon://business-objects-experience" 
-			    press="gotoPredict" 
-			    visible="{= !!${/MapPopoverDisplayPredictedValues}}"
 			    data:salesorgNow="{sales2>SALES_ORGANISATION}"
 			    data:salesorgPredict="{sales3>SALES_ORGANISATION}" />
 		</endButton>
 		<content>
 			<VBox class="sapUiTinyMargin">
 		        <Label text="{i18n>Period}" />
-			    <Text text="{path: 'sales2>MONTH', formatter: '.formatter.month'} {sales2>YEAR}" visible="{= !${/MapPopoverDisplayPredictedValues}}" />
-			    <Text text="{path: 'sales3>MONTH', formatter: '.formatter.month'} {sales3>YEAR}" visible="{= !!${/MapPopoverDisplayPredictedValues}}" />
+			    <Text text="{path: 'sales2>MONTH', formatter: '.formatter.month'} {sales2>YEAR}" visible="{= ${/MapPopoverDisplayCurrentValues}}" />
+			    <Text text="{path: 'sales3>MONTH', formatter: '.formatter.month'} {sales3>YEAR}" visible="{= ${/MapPopoverDisplayPredictedValues}}" />
 			</VBox>
 			<VBox class="sapUiTinyMargin sapUiSmallMarginTop">
 		        <Label text="{i18n>Revenue}" />
 			    <FormattedText htmlText="&lt;strong&gt;
 			        {path: 'sales2>REVENUE', type:'sap.ui.model.type.Float', formatOptions: { minFractionDigits:2, maxFractionDigits:2 } } 
-			        {sales2>CURRENCY}&lt;/strong&gt;" visible="{= !${/MapPopoverDisplayPredictedValues}}" />
+			        {sales2>CURRENCY}&lt;/strong&gt;" visible="{= ${/MapPopoverDisplayCurrentValues}}" />
 			    <FormattedText htmlText="&lt;strong&gt;
 			        {path: 'sales3>REVENUE', type:'sap.ui.model.type.Float', formatOptions: { minFractionDigits:2, maxFractionDigits:2 } } 
-			        {sales3>CURRENCY}&lt;/strong&gt;" visible="{= !!${/MapPopoverDisplayPredictedValues}}" />
+			        {sales3>CURRENCY}&lt;/strong&gt;" visible="{= ${/MapPopoverDisplayPredictedValues}}" />
 			</VBox>
 			<VBox class="sapUiTinyMargin sapUiSmallMarginTop">
 		        <Label text="{i18n>RevenuePerItem}" />
-    			<List items="{sales2>ProductGroups}" visible="{= !${/MapPopoverDisplayPredictedValues}}" >
+    			<List items="{sales2>ProductGroups}" visible="{= ${/MapPopoverDisplayCurrentValues}}" >
             		<StandardListItem class="noPadding"
             			title="{path: 'sales2>PRODUCT_GROUP', formatter: '.formatter.setEmptyText'}"
             			counter="{path: 'sales2>REVENUE', type:'sap.ui.model.type.Float' }"/>
             	</List>
-    			<List items="{sales3>ProductGroups}" visible="{= !!${/MapPopoverDisplayPredictedValues}}" >
+    			<List items="{sales3>ProductGroups}" visible="{= ${/MapPopoverDisplayPredictedValues}}" >
             		<StandardListItem class="noPadding"
             			title="{path: 'sales3>PRODUCT_GROUP', formatter: '.formatter.setEmptyText'}"
             			counter="{path: 'sales3>REVENUE', type:'sap.ui.model.type.Float' }"/>

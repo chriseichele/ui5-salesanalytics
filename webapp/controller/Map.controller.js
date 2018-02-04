@@ -544,9 +544,11 @@ sap.ui.define([
 			}
 			if (this._oPopover) {
 				if(oClickedElement.oBindingContexts.sales2){
+				    this.oModel.setProperty("/MapPopoverDisplayPredictedValues",false);
 				    this._oPopover.bindElement("sales2>" + oClickedElement.oBindingContexts.sales2.sPath);
 				}
 				if(oClickedElement.oBindingContexts.sales3){
+				    this.oModel.setProperty("/MapPopoverDisplayPredictedValues",true);
 				    this._oPopover.bindElement("sales3>" + oClickedElement.oBindingContexts.sales3.sPath);
 				}
 			}

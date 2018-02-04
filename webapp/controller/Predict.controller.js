@@ -154,12 +154,17 @@ sap.ui.define([
 			this.getRouter().navTo("predict", this.oRouteArguments, true);
 		},
 		
+		onSwitchChange: function(oEvent) {
+		    if(!oEvent.getParameter("state")){
+		        this.oRouteArguments.expectedMarketGrowth = 0;
+		        this.getRouter().navTo("predict", this.oRouteArguments, true);
+		    }
+		},
+		
 		onChangeMarketGrowth: function(oEvent) {
 		    // remember market growth in route (to keep bookmarkable link up to date)
-		    if(oEvent.getParameter("value")) {
-		        this.oRouteArguments.expectedMarketGrowth = oEvent.getParameter("value");
-			    this.getRouter().navTo("predict", this.oRouteArguments, true);
-		    }
+		    this.oRouteArguments.expectedMarketGrowth = oEvent.getParameter("value");
+		    this.getRouter().navTo("predict", this.oRouteArguments, true);
 		},
 		
 		onDate1Select: function(oEvent) {
